@@ -119,7 +119,7 @@ export default function Navbar() {
             <Palette size={17} strokeWidth={1.5} />
           </button>
           <Link to="/dashboard" className="navbar-avatar" aria-label="Profile">
-            <img src="https://i.pravatar.cc/150?img=8" alt="User" />
+            <img src="./img.jpeg" alt="User" />
           </Link>
         </div>
 
