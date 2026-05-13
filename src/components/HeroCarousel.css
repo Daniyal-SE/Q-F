@@ -28,6 +28,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   z-index: 0;
   pointer-events: none;
 }
@@ -55,7 +56,6 @@
   align-items: flex-end;
   padding-bottom: 80px;
   padding-top: 80px;
-  /* push down past pill navbar */
 }
 
 .hero-carousel__inner {
@@ -109,7 +109,7 @@
   flex-wrap: wrap;
 }
 
-/* Bottom fade & Dots
+/* Bottom fade & Dots */
 .hero-carousel__bottom-fade {
   position: absolute;
   bottom: 0;
@@ -146,7 +146,7 @@
 
 .hero-carousel__dot:hover:not(.active) {
   background: var(--surface-card);
-} */
+}
 
 /* Navigation Arrows */
 .hero-carousel__arrow {
@@ -187,10 +187,11 @@
   right: 30px;
 }
 
-/* Responsive */
+/* ── Tablet ─────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .hero-carousel__dots {
     left: 32px;
+    bottom: 20px;
   }
 
   .hero-carousel__inner {
@@ -203,40 +204,83 @@
     padding-bottom: 60px;
   }
 
-  .hero-carousel__dots {
-    bottom: 20px;
-  }
-
   .hero-carousel__arrow {
     opacity: 1;
     width: 40px;
     height: 40px;
   }
 
-  .hero-carousel__arrow--left {
-    left: 15px;
-  }
-
-  .hero-carousel__arrow--right {
-    right: 15px;
-  }
+  .hero-carousel__arrow--left { left: 15px; }
+  .hero-carousel__arrow--right { right: 15px; }
 }
 
+/* ── Mobile ─────────────────────────────────────────── */
 @media (max-width: 768px) {
   .hero-carousel {
-    height: 85vh;
+    height: 100svh;  /* Use small viewport height to avoid browser chrome overlap */
+    min-height: 480px;
+  }
+
+  /* On portrait phones, center the image on its focal point */
+  .hero-carousel__bg-media {
+    object-position: center center;
+  }
+
+  /* Lighter gradient so more of the image is visible */
+  .hero-carousel__gradient {
+    background:
+      linear-gradient(to top,
+        rgba(0, 0, 0, 0.95) 0%,
+        rgba(0, 0, 0, 0.5) 35%,
+        rgba(0, 0, 0, 0.15) 65%,
+        transparent 100%),
+      linear-gradient(to right,
+        rgba(0, 0, 0, 0.6) 0%,
+        transparent 60%);
   }
 
   .hero-carousel__title {
-    font-size: 36px;
+    font-size: clamp(28px, 8vw, 42px);
   }
 
   .hero-carousel__desc {
-    font-size: 14px;
-    margin-bottom: 20px;
+    font-size: 13px;
+    margin-bottom: 18px;
+    /* Trim long descriptions on small screens */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .hero-carousel__content {
+    padding-bottom: 50px;
+    padding-top: 60px;
+  }
+
+  .hero-carousel__text {
+    max-width: 100%;
   }
 
   .hero-carousel__dots {
     left: 20px;
+    bottom: 16px;
+  }
+}
+
+/* ── Small phones (< 480px) ─────────────────────────── */
+@media (max-width: 480px) {
+  .hero-carousel {
+    height: 100svh;
+    min-height: 420px;
+  }
+
+  .hero-carousel__title {
+    font-size: clamp(24px, 9vw, 36px);
+  }
+
+  .hero-carousel__arrow {
+    width: 36px;
+    height: 36px;
   }
 }
