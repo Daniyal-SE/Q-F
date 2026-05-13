@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import MovieDetail from './pages/MovieDetail';
 import AnimeDetail from './pages/AnimeDetail';
 import WatchPage from './pages/WatchPage';
+import TMDBDetail from './pages/TMDBDetail';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/movie/:id" element={<MovieDetail />} />
         <Route path="/anime/:id" element={<AnimeDetail />} />
         <Route path="/watch/:id" element={<WatchPage />} />
+        <Route path="/tmdb/:id" element={<TMDBDetail />} />
         {/* Catch-all aliases */}
         <Route path="/movies" element={<Home />} />
         <Route path="/anime" element={<Home />} />
