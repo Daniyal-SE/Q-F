@@ -12,6 +12,7 @@ export default function AnimeDetail() {
   const { id } = useParams();
   const a = getMediaById(id);
   const [playing, setPlaying] = useState(false);
+  const [realTrailer, setRealTrailer] = useState(null);
 
   const getEmbedUrl = (url) => {
     if (!url) return '';
@@ -21,6 +22,30 @@ export default function AnimeDetail() {
     }
     return url;
   };
+
+  useEffect(() => {
+    // Use curated trailer directly if it exists
+    if (a?.trailer) {
+      setRealTrailer(getEmbedUrl(a.trailer));
+      return;
+    }
+    // Only search TMDB if no trailer is set in mock data
+    if (a?.title) {
+      const fetchTrailer = async () => {
+        try {
+          const searchRes = await fetch(`https://api.themoviedb.org/3/search/tv?api_key=1fa448de74c5dac88e0d31d99c7e916d&query=${encodeURIComponent(a.title)}`);
+          const searchData = await searchRes.json();
+          if (searchData.results?.[0]?.id) {
+            const vidRes = await fetch(`https://api.themoviedb.org/3/tv/${searchData.results[0].id}/videos?api_key=1fa448de74c5dac88e0d31d99c7e916d`);
+            const vidData = await vidRes.json();
+            const trailer = vidData.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+            if (trailer) setRealTrailer(`https://www.youtube.com/embed/${trailer.key}`);
+          }
+        } catch (e) {}
+      };
+      fetchTrailer();
+    }
+  }, [a?.title, a?.trailer]);
 
   // Scroll to top when the movie changes
   useEffect(() => {
@@ -38,11 +63,48 @@ export default function AnimeDetail() {
     );
   }
 
+  const [tmdbRecs, setTmdbRecs] = useState([]);
+
+  // Fetch real TMDB recommendations by searching for this title
+  useEffect(() => {
+    if (!a?.title) return;
+    const fetchRecs = async () => {
+      try {
+        const searchRes = await fetch(`https://api.themoviedb.org/3/search/tv?api_key=1fa448de74c5dac88e0d31d99c7e916d&query=${encodeURIComponent(a.title)}`);
+        const searchData = await searchRes.json();
+        const tmdbId = searchData.results?.[0]?.id;
+        if (tmdbId) {
+          const recRes = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}/recommendations?api_key=1fa448de74c5dac88e0d31d99c7e916d&language=en-US&page=1`);
+          const recData = await recRes.json();
+          if (recData.results?.length > 0) {
+            setTmdbRecs(recData.results.slice(0, 6).map(r => ({
+              id: r.id,
+              title: r.name || r.title,
+              match: Math.floor(Math.random() * 15) + 80,
+              poster: r.poster_path ? `https://image.tmdb.org/t/p/w300${r.poster_path}` : null
+            })));
+          }
+        }
+      } catch (e) {}
+    };
+    fetchRecs();
+  }, [a?.title]);
+
   // Fallback arrays for generated content that doesn't have episodes/features
-  const episodes_list = a.episodes_list || animeDetail.episodes_list;
-  const features = a.features || animeDetail.features;
-  const recommended = a.recommended || animeDetail.recommended;
   const stills = a.stills || animeDetail.stills;
+  // Build episodes from stills — each still becomes an episode thumbnail
+  const episodes_list = a.episodes_list || (stills.length > 0
+    ? stills.slice(0, 8).map((still, i) => ({
+        id: i + 1,
+        number: `E${i + 1}`,
+        label: `EP ${i + 1}`,
+        title: `Episode ${i + 1}`,
+        desc: `Watch Episode ${i + 1} of ${a.title}. Click to stream.`,
+        thumb: still,
+      }))
+    : animeDetail.episodes_list);
+  const features = a.features || animeDetail.features;
+  const recommended = tmdbRecs.length > 0 ? tmdbRecs : (a.recommended || animeDetail.recommended);
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -143,7 +205,15 @@ export default function AnimeDetail() {
             {!playing ? (
               <div 
                 style={{ width: '100%', height: '100%', position: 'relative', cursor: 'pointer' }}
-                onClick={() => setPlaying(true)}
+                onClick={() => {
+                  setPlaying(true);
+                  try {
+                    const history = JSON.parse(localStorage.getItem('cinestream_watch_history') || '[]');
+                    const newItem = { id: a.id, title: a.title, poster: a.poster, year: a.year, genre: a.genres?.[0] || 'Anime', isTMDB: false };
+                    const filtered = history.filter(h => h.id !== a.id);
+                    localStorage.setItem('cinestream_watch_history', JSON.stringify([newItem, ...filtered].slice(0, 20)));
+                  } catch (e) {}
+                }}
               >
                 <img src={stills && stills[0] ? stills[0] : a.hero} alt="Trailer" className="trailer-player__bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <div className="anime-trailer__overlay" />
@@ -163,7 +233,7 @@ export default function AnimeDetail() {
               <iframe
                 width="100%"
                 height="100%"
-                src={`${getEmbedUrl(a.trailer)}?autoplay=1`}
+                src={`${realTrailer || getEmbedUrl(a.trailer)}?autoplay=1`}
                 title="Official Trailer"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

@@ -17,6 +17,44 @@ export default function TMDBDetail() {
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const topRef = useRef(null);
+  const watchSecondsRef = useRef(0);
+
+  useEffect(() => {
+    let interval = null;
+    if (playing) {
+      interval = setInterval(() => {
+        watchSecondsRef.current += 1;
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+      if (watchSecondsRef.current > 0 && movie) {
+        try {
+          const history = JSON.parse(localStorage.getItem('cinestream_watch_history') || '[]');
+          const idx = history.findIndex(h => h.id === movie.id);
+          if (idx !== -1) {
+            history[idx].watchSeconds = (history[idx].watchSeconds || 0) + watchSecondsRef.current;
+            // Move to front
+            const item = history.splice(idx, 1)[0];
+            history.unshift(item);
+          } else {
+            history.unshift({
+              id: movie.id,
+              title: movie.title,
+              poster: movie.poster_path ? `${IMG_BASE}w500${movie.poster_path}` : null,
+              year: movie.release_date?.split('-')[0] || 'N/A',
+              genre: movie.genres?.[0]?.name || 'TMDB',
+              isTMDB: true,
+              watchSeconds: watchSecondsRef.current
+            });
+          }
+          localStorage.setItem('cinestream_watch_history', JSON.stringify(history.slice(0, 20)));
+        } catch (e) {}
+        watchSecondsRef.current = 0;
+      }
+    };
+  }, [playing, movie]);
 
   useEffect(() => {
     setPlaying(false);
@@ -161,16 +199,8 @@ export default function TMDBDetail() {
               )}
             </div>
 
-            <div className="tmdb-detail__actions">
-              {trailer && (
-                <button className="btn btn-primary" onClick={() => setPlaying(true)}>
-                  <Play size={16} fill="white" strokeWidth={0} />
-                  Watch Trailer
-                </button>
-              )}
-              <button className="btn btn-outline" onClick={() => navigate(-1)}>
-                <ArrowLeft size={15} /> Back to Search
-              </button>
+            <div className="tmdb-detail__actions" style={{ display: 'none' }}>
+              {/* Buttons removed as requested */}
             </div>
 
             {/* Credits */}

@@ -20,7 +20,7 @@ export default function Search() {
   const [error, setError] = useState(null);
   const [totalResults, setTotalResults] = useState(0);
 
-  const types = ['All', 'Movie', 'TV Show'];
+  const types = ['All', 'Movie', 'TV Show', 'Anime'];
 
   // Fetch trending on mount
   useEffect(() => {
@@ -30,8 +30,19 @@ export default function Search() {
           `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`
         );
         const data = await res.json();
-        setTrending(data.results?.slice(0, 18) || []);
-        setResults(data.results?.slice(0, 18) || []);
+        
+        const formattedTrending = (data.results || []).slice(0, 18).map(item => ({
+          id: item.id,
+          title: item.title || item.name,
+          poster: item.poster_path ? `${IMG_BASE}${item.poster_path}` : null,
+          type: item.media_type === 'tv' ? 'TV Show' : 'Movie',
+          year: (item.release_date || item.first_air_date || '').split('-')[0] || 'N/A',
+          rating: item.vote_average ? item.vote_average.toFixed(1) : null,
+          genre: item.genre_ids?.[0] || null,
+        }));
+        
+        setTrending(formattedTrending);
+        setResults(formattedTrending);
       } catch (e) {
         console.error('Trending fetch error:', e);
       }
@@ -42,8 +53,16 @@ export default function Search() {
   // Live search with debounce
   useEffect(() => {
     if (!query.trim()) {
-      setResults(trending);
-      setTotalResults(trending.length);
+      let filteredTrending = trending;
+      if (activeType === 'Movie') {
+        filteredTrending = trending.filter(t => t.type === 'Movie');
+      } else if (activeType === 'TV Show') {
+        filteredTrending = trending.filter(t => t.type === 'TV Show');
+      } else if (activeType === 'Anime') {
+        filteredTrending = trending.filter(t => t.genre === 16 || t.original_language === 'ja');
+      }
+      setResults(filteredTrending);
+      setTotalResults(filteredTrending.length);
       setError(null);
       return;
     }
@@ -57,7 +76,7 @@ export default function Search() {
         let url = '';
         if (activeType === 'Movie') {
           url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&sort_by=release_date.desc&language=en-US&page=1`;
-        } else if (activeType === 'TV Show') {
+        } else if (activeType === 'TV Show' || activeType === 'Anime') {
           url = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1`;
         } else {
           url = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1`;
@@ -70,6 +89,7 @@ export default function Search() {
         // Format results sorted by release date (newest first)
         let formatted = (data.results || [])
           .filter(item => item.media_type !== 'person' && (item.poster_path || item.backdrop_path))
+          .filter(item => activeType !== 'Anime' || (item.original_language === 'ja' || item.origin_country?.includes('JP')))
           .sort((a, b) => {
             const dateA = a.release_date || a.first_air_date || '0';
             const dateB = b.release_date || b.first_air_date || '0';

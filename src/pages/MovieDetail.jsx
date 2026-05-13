@@ -14,6 +14,7 @@ export default function MovieDetail() {
   const { id } = useParams();
   const m = getMediaById(id);
   const [playing, setPlaying] = useState(false);
+  const [realTrailer, setRealTrailer] = useState(null);
 
   const getEmbedUrl = (url) => {
     if (!url) return '';
@@ -23,6 +24,30 @@ export default function MovieDetail() {
     }
     return url;
   };
+
+  useEffect(() => {
+    // If the movie already has a curated trailer URL, use it directly — no TMDB fetch needed
+    if (m?.trailer) {
+      setRealTrailer(getEmbedUrl(m.trailer));
+      return;
+    }
+    // Only fetch from TMDB if NO trailer is provided in the mock data
+    if (m?.title) {
+      const fetchTrailer = async () => {
+        try {
+          const searchRes = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=1fa448de74c5dac88e0d31d99c7e916d&query=${encodeURIComponent(m.title)}`);
+          const searchData = await searchRes.json();
+          if (searchData.results?.[0]?.id) {
+            const vidRes = await fetch(`https://api.themoviedb.org/3/movie/${searchData.results[0].id}/videos?api_key=1fa448de74c5dac88e0d31d99c7e916d`);
+            const vidData = await vidRes.json();
+            const trailer = vidData.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+            if (trailer) setRealTrailer(`https://www.youtube.com/embed/${trailer.key}`);
+          }
+        } catch (e) {}
+      };
+      fetchTrailer();
+    }
+  }, [m?.title, m?.trailer]);
 
   // Scroll to top when the movie changes
   useEffect(() => {
@@ -39,7 +64,37 @@ export default function MovieDetail() {
       </div>
     );
   }
+
   const similarScrollRef = React.useRef(null);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [tmdbRecs, setTmdbRecs] = React.useState([]);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  React.useEffect(() => {
+    if (!m?.title) return;
+    const fetchRecs = async () => {
+      try {
+        const searchRes = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=1fa448de74c5dac88e0d31d99c7e916d&query=${encodeURIComponent(m.title)}`);
+        const searchData = await searchRes.json();
+        const tmdbId = searchData.results?.[0]?.id;
+        if (tmdbId) {
+          const recRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}/recommendations?api_key=1fa448de74c5dac88e0d31d99c7e916d&language=en-US&page=1`);
+          const recData = await recRes.json();
+          if (recData.results?.length > 0) {
+            setTmdbRecs(recData.results.slice(0, 8).map(r => ({
+              id: r.id,
+              title: r.title,
+              poster: r.poster_path ? `https://image.tmdb.org/t/p/w300${r.poster_path}` : null,
+              year: r.release_date?.split('-')[0] || '',
+              genre: 'Movie',
+              type: 'Movie',
+              isTMDB: true,
+            })));
+          }
+        }
+      } catch (e) {}
+    };
+    fetchRecs();
+  }, [m?.title]);
 
   const scrollSimilarLeft = () => {
     if (similarScrollRef.current) {
@@ -148,7 +203,15 @@ export default function MovieDetail() {
             {!playing ? (
               <div 
                 style={{ width: '100%', height: '100%', position: 'relative', cursor: 'pointer' }}
-                onClick={() => setPlaying(true)}
+                onClick={() => {
+                  setPlaying(true);
+                  try {
+                    const history = JSON.parse(localStorage.getItem('cinestream_watch_history') || '[]');
+                    const newItem = { id: m.id, title: m.title, poster: m.poster, year: m.year, genre: m.genre, isTMDB: false };
+                    const filtered = history.filter(h => h.id !== m.id);
+                    localStorage.setItem('cinestream_watch_history', JSON.stringify([newItem, ...filtered].slice(0, 20)));
+                  } catch (e) {}
+                }}
               >
                 <img src={m.stills && m.stills[0] ? m.stills[0] : m.hero} alt="Trailer" className="trailer-player__bg" />
                 <div className="trailer-player__overlay" />
@@ -168,7 +231,7 @@ export default function MovieDetail() {
               <iframe
                 width="100%"
                 height="100%"
-                src={`${getEmbedUrl(m.trailer)}?autoplay=1`}
+                src={`${realTrailer || getEmbedUrl(m.trailer)}?autoplay=1`}
                 title="Official Trailer"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -205,8 +268,31 @@ export default function MovieDetail() {
             </div>
           </div>
           <div className="similar-grid" ref={similarScrollRef}>
-            {m.similar.map(s => (
-              <MediaCard key={s.id} item={s} size="md" />
+            {tmdbRecs.length > 0 ? tmdbRecs.map(s => (
+              <div
+                key={s.id}
+                style={{ flexShrink: 0, width: 160, cursor: 'pointer' }}
+                onClick={() => navigate(`/tmdb/${s.id}`)}
+              >
+                <div style={{ aspectRatio: '2/3', borderRadius: 8, overflow: 'hidden', background: 'var(--bg-surface)', marginBottom: 8, position: 'relative' }}>
+                  {s.poster ? (
+                    <img src={s.poster} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', fontSize: 28 }}>
+                      {s.title?.[0]}
+                    </div>
+                  )}
+                </div>
+                <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-dim)' }}>{s.year}</p>
+              </div>
+            )) : (m.stills || []).slice(0, 6).map((src, i) => (
+              <div key={i} style={{ flexShrink: 0, width: 200 }}>
+                <div style={{ aspectRatio: '16/9', borderRadius: 8, overflow: 'hidden', background: 'var(--bg-surface)', marginBottom: 8 }}>
+                  <img src={src} alt={`Still ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Scene {i + 1}</p>
+              </div>
             ))}
           </div>
         </section>

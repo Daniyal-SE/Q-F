@@ -1,37 +1,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 :root {
-  /* ── Core background palette (base: #080505) ──────── */
-  --bg: #080505;
-  --bg-low: #0d0808;
-  --bg-mid: #140d0d;
-  --bg-surface: #1a1111;
-  --bg-high: #231616;
-  --bg-highest: #2e1e1e;
+  /* ── Core background palette — TRUE BLACK dark mode ── */
+  --bg: #000000;
+  --bg-low: #0a0a0a;
+  --bg-mid: #111111;
+  --bg-surface: #1a1a1a;
+  --bg-high: #222222;
+  --bg-highest: #2e2e2e;
 
   /* ── Brand colours ─────────────────────────────────── */
-  --primary: #D84040;
-  --primary-dark: #8E1616;
-  --primary-container: #fa5956;
-  --secondary: #ffb4ab;
-  --tertiary: #73d6da;
+  --primary: #E50914;
+  --primary-dark: #b20710;
+  --primary-container: #ff3b3b;
+  --secondary: #ffffff;
+  --tertiary: #aaaaaa;
 
   /* ── Text ───────────────────────────────────────────── */
-  --text: #f7dcda;
-  --text-muted: #e2bebb;
-  --text-dim: #a98987;
+  --text: #ffffff;
+  --text-muted: #aaaaaa;
+  --text-dim: #666666;
 
   /* ── Borders / surfaces ─────────────────────────────── */
-  --outline: #a98987;
-  --outline-variant: #5a403f;
-  --surface-10: rgba(255, 255, 255, 0.08);
+  --outline: #333333;
+  --outline-variant: #222222;
+  --surface-10: rgba(255, 255, 255, 0.07);
   --surface-15: rgba(255, 255, 255, 0.12);
   --surface-card: rgba(255, 255, 255, 0.04);
 
   /* ── Raw bg channel for rgba() use in gradients ────── */
-  --bg-r: 8;
-  --bg-g: 5;
-  --bg-b: 5;
+  --bg-r: 0;
+  --bg-g: 0;
+  --bg-b: 0;
 
   /* ── Typography ─────────────────────────────────────── */
   --font-heading: 'Montserrat', sans-serif;
@@ -50,27 +50,28 @@
   --transition-slow: 0.4s ease;
 }
 
-body.theme-alt {
-  --bg: #050814;
-  --bg-low: #090e21;
-  --bg-mid: #0e142e;
-  --bg-surface: #131b3b;
-  --bg-high: #1a234a;
-  --bg-highest: #222d59;
+/* ── LIGHT MODE — Off-White ─────────────────────────── */
+body.theme-light {
+  --bg: #F5F5F5;
+  --bg-low: #EEEEEE;
+  --bg-mid: #E8E8E8;
+  --bg-surface: #DFDFDF;
+  --bg-high: #D4D4D4;
+  --bg-highest: #C8C8C8;
 
-  --text: #e0e6f5;
-  --text-muted: #b0bcde;
-  --text-dim: #7c8ebf;
+  --text: #111111;
+  --text-muted: #444444;
+  --text-dim: #888888;
 
-  --outline: #7c8ebf;
-  --outline-variant: #283661;
-  --surface-10: rgba(255, 255, 255, 0.06);
-  --surface-15: rgba(255, 255, 255, 0.10);
-  --surface-card: rgba(255, 255, 255, 0.04);
+  --outline: #CCCCCC;
+  --outline-variant: #BBBBBB;
+  --surface-10: rgba(0, 0, 0, 0.05);
+  --surface-15: rgba(0, 0, 0, 0.10);
+  --surface-card: rgba(0, 0, 0, 0.03);
 
-  --bg-r: 5;
-  --bg-g: 8;
-  --bg-b: 20;
+  --bg-r: 245;
+  --bg-g: 245;
+  --bg-b: 245;
 }
 
 /* ── Reset ───────────────────────────────────────────── */

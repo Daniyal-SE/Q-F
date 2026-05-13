@@ -53,11 +53,13 @@ export default function Navbar() {
   }, [open]);
 
   const toggleTheme = () => {
-    if (isAltTheme) {
-      document.body.classList.remove('theme-alt');
+    const isLight = document.body.classList.contains('theme-light');
+    if (isLight) {
+      document.body.classList.remove('theme-light');
       setIsAltTheme(false);
     } else {
-      document.body.classList.add('theme-alt');
+      document.body.classList.remove('theme-alt');
+      document.body.classList.add('theme-light');
       setIsAltTheme(true);
     }
   };
