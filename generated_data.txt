@@ -1,0 +1,69 @@
+
+// ─── K-Drama ─────────────────────────────────────────────────────────────
+export const kdrama = [
+  { id: 100, title: "All of Us Are Dead (2022)", year: 2024, rating: 9.0, type: 'TV', genre: 'Drama', poster: "/Gallery/K-Drama/All of Us Are Dead (2022)/Poster.jpg" },
+  { id: 101, title: "BloodHound 2", year: 2024, rating: 9.0, type: 'TV', genre: 'Drama', poster: "/Gallery/K-Drama/BloodHound 2/poster.jpg" },
+  { id: 102, title: "Mercy for None (2025)", year: 2024, rating: 9.0, type: 'TV', genre: 'Drama', poster: "/Gallery/K-Drama/Mercy for None (2025)/Psoter.jpg" },
+  { id: 103, title: "My Demon", year: 2024, rating: 9.0, type: 'TV', genre: 'Drama', poster: "/Gallery/K-Drama/My Demon/Poster.jpg" },
+  { id: 104, title: "Queen of Tears", year: 2024, rating: 9.0, type: 'TV', genre: 'Drama', poster: "/Gallery/K-Drama/Queen of Tears/Poster.jpg" },
+  { id: 105, title: "The Art of Sarah (2026)", year: 2024, rating: 9.0, type: 'TV', genre: 'Drama', poster: "/Gallery/K-Drama/The Art of Sarah (2026)/Poster.jpg" },
+  { id: 106, title: "Vincenzo (2021)", year: 2024, rating: 9.0, type: 'TV', genre: 'Drama', poster: "/Gallery/K-Drama/Vincenzo (2021)/poster.jpg" },
+  { id: 107, title: "Weak Hero Class 1 (2022)", year: 2024, rating: 9.0, type: 'TV', genre: 'Drama', poster: "/Gallery/K-Drama/Weak Hero Class 1 (2022)/poster.jpg" },
+  { id: 108, title: "When Life Gives You Tangerines (2025)", year: 2024, rating: 9.0, type: 'TV', genre: 'Drama', poster: "/Gallery/K-Drama/When Life Gives You Tangerines (2025)/poster.jpg" },
+];
+
+// ─── Bollywood ─────────────────────────────────────────────────────────────
+export const bollywood = [
+  { id: 109, title: "96 (2018)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Bollywood/96 (2018)/psoter.jpg" },
+  { id: 110, title: "Airlift (2016)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Bollywood/Airlift (2016)/Poster.jpg" },
+  { id: 111, title: "Animal (2023)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Bollywood/Animal (2023)/poster.jpg" },
+  { id: 112, title: "Extraction (2020)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Bollywood/Extraction (2020)/psoter.jpg" },
+  { id: 113, title: "Hi Nanna (2023) - Backdrops — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Bollywood/Hi Nanna (2023) - Backdrops — The Movie Database (TMDB)/Poster.jpg" },
+  { id: 114, title: "Master (2021) - Backdrops — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Bollywood/Master (2021) - Backdrops — The Movie Database (TMDB)/Poster.jpg" },
+  { id: 115, title: "Om Shanti Om (2007)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Bollywood/Om Shanti Om (2007)/poster.jpg" },
+  { id: 116, title: "Sita Ramam 2022", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Bollywood/Sita Ramam 2022/poster.png" },
+  { id: 117, title: "Super 30 (2019)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Bollywood/Super 30 (2019)/poster.jpg" },
+];
+
+// ─── Hollywood ─────────────────────────────────────────────────────────────
+export const hollywood = [
+  { id: 118, title: "Atonement (2007) - Backdrops — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Hollywood/Atonement (2007) - Backdrops — The Movie Database (TMDB)/Poster.jpg" },
+  { id: 119, title: "Avengers_ Endgame (2019) - Backdrops — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Hollywood/Avengers_ Endgame (2019) - Backdrops — The Movie Database (TMDB)/poster.jpg" },
+  { id: 120, title: "Blue Beetle (2023) - Backdrops — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Hollywood/Blue Beetle (2023) - Backdrops — The Movie Database (TMDB)/poster.jpg" },
+  { id: 121, title: "Fast X (2023) - Backdrops — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Hollywood/Fast X (2023) - Backdrops — The Movie Database (TMDB)/poster.jpg" },
+  { id: 122, title: "Free Guy (2021) - Backdrops — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Hollywood/Free Guy (2021) - Backdrops — The Movie Database (TMDB)/Poteer.jpg" },
+  { id: 123, title: "Johnny English Strikes Again (2018) - Backdrops — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Hollywood/Johnny English Strikes Again (2018) - Backdrops — The Movie Database (TMDB)/POster.jpg" },
+  { id: 124, title: "Mission_ Impossible - Fallout (2018) - Backdrops — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Hollywood/Mission_ Impossible - Fallout (2018) - Backdrops — The Movie Database (TMDB)/poster.jpg" },
+  { id: 125, title: "Oppenheimer (2023) - Backdrops — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Hollywood/Oppenheimer (2023) - Backdrops — The Movie Database (TMDB)/poste.jpg" },
+  { id: 126, title: "Sisu (2022) — The Movie Database (TMDB)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Action', poster: "/Gallery/Hollywood/Sisu (2022) — The Movie Database (TMDB)/poster.jpg" },
+];
+
+// ─── Anime Picks ─────────────────────────────────────────────────────────────
+export const animePicks = [
+  { id: 127, title: "Beauty and the Beast (1991)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/Beauty and the Beast (1991)/Psoter.jpg" },
+  { id: 128, title: "Cars (2006)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/Cars (2006)/Poster.jpg" },
+  { id: 129, title: "Doraemon_ Nobita's Chronicle of the Moon Exploration (2019)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/Doraemon_ Nobita's Chronicle of the Moon Exploration (2019)/Poster.jpg" },
+  { id: 130, title: "Kung Fu Panda (2008)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/Kung Fu Panda (2008)/Poster.jpg" },
+  { id: 131, title: "Ne Zha 2 (2025)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/Ne Zha 2 (2025)/Poster.jpg" },
+  { id: 132, title: "Raya and the Last Dragon (2021)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/Raya and the Last Dragon (2021)/poster.jpg" },
+  { id: 133, title: "The Bad Guys 2 (2025)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/The Bad Guys 2 (2025)/Poster.jpg" },
+  { id: 134, title: "The Boss Baby (2017)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/The Boss Baby (2017)/Psoter.jpg" },
+  { id: 135, title: "The Little Mermaid (1989)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/The Little Mermaid (1989)/Poster.jpg" },
+  { id: 136, title: "Tom & Jerry (2021)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/Tom & Jerry (2021)/poster.jpg" },
+  { id: 137, title: "Toy Story 3 (2010)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/Toy Story 3 (2010)/Poster.jpg" },
+  { id: 138, title: "Zootopia 2 (2025)", year: 2024, rating: 9.0, type: 'Movie', genre: 'Animation', poster: "/Gallery/Animated Film/Zootopia 2 (2025)/Poster.jpg" },
+];
+
+// ─── Anime ─────────────────────────────────────────────────────────────
+export const anime = [
+  { id: 139, title: "Death Note (2006)", year: 2024, rating: 9.0, type: 'Anime', genre: 'Action', poster: "/Gallery/Anime/Death Note (2006)/Poster.jpg" },
+  { id: 140, title: "Demon Slayer_ Kimetsu no Yaiba (2019)", year: 2024, rating: 9.0, type: 'Anime', genre: 'Action', poster: "/Gallery/Anime/Demon Slayer_ Kimetsu no Yaiba (2019)/Poster.jpg" },
+  { id: 141, title: "Jujutsu Kaisen (2020)", year: 2024, rating: 9.0, type: 'Anime', genre: 'Action', poster: "/Gallery/Anime/Jujutsu Kaisen (2020)/Poster.jpg" },
+  { id: 142, title: "One Piece (1999)", year: 2024, rating: 9.0, type: 'Anime', genre: 'Action', poster: "/Gallery/Anime/One Piece (1999)/Poster.jpg" },
+  { id: 143, title: "Overlord (2015)", year: 2024, rating: 9.0, type: 'Anime', genre: 'Action', poster: "/Gallery/Anime/Overlord (2015)/posteer.jpg" },
+  { id: 144, title: "Solo Leveling (2024)", year: 2024, rating: 9.0, type: 'Anime', genre: 'Action', poster: "/Gallery/Anime/Solo Leveling (2024)/Poster.jpg" },
+  { id: 145, title: "Spirited Away (2001)", year: 2024, rating: 9.0, type: 'Anime', genre: 'Action', poster: "/Gallery/Anime/Spirited Away (2001)/Poster.jpg" },
+  { id: 146, title: "Spy x Family (2022)", year: 2024, rating: 9.0, type: 'Anime', genre: 'Action', poster: "/Gallery/Anime/Spy x Family (2022)/Poster.jpg" },
+  { id: 147, title: "Tower of God (2020)", year: 2024, rating: 9.0, type: 'Anime', genre: 'Action', poster: "/Gallery/Anime/Tower of God (2020)/poster.jpg" },
+  { id: 148, title: "Your Name. (2016)", year: 2024, rating: 9.0, type: 'Anime', genre: 'Action', poster: "/Gallery/Anime/Your Name. (2016)/Poster.jpg" },
+];

@@ -1,0 +1,8 @@
+.form-row-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 480px) {
+  .form-row-two { grid-template-columns: 1fr; }
+}

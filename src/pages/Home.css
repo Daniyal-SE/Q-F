@@ -1,0 +1,103 @@
+.home {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* ── Hero ────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  height: 90vh;
+  min-height: 580px;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 60px;
+  /* push down past pill navbar (≈66px) */
+  padding-top: 80px;
+}
+
+.hero__gradient {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to right,
+      rgba(8, 5, 5, 0.96) 35%,
+      rgba(8, 5, 5, 0.55) 65%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(8, 5, 5, 1)   0%,
+      rgba(8, 5, 5, 0.4) 40%,
+      transparent        70%
+    );
+}
+
+.hero__bottom-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 130px;
+  background: linear-gradient(to top, var(--bg), transparent);
+}
+
+.hero__content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.hero__inner { max-width: 520px; }
+
+.hero__badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.hero__title {
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 1.05;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.hero__desc {
+  font-size: 16px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 440px;
+  margin-bottom: 28px;
+}
+
+.hero__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Content area ────────────────────────────────────── */
+.home__content {
+  /* Small top pad so the first section title clears the hero fade */
+  padding-top: 8px;
+}
+
+/* 2-row spacer before "Trending Now" — pushes the section down */
+.home__section-spacer {
+  height: 64px;   /* ≈ 2 × line-height of a body row */
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hero          { height: 75vh; }
+  .hero__title   { font-size: 36px; }
+  .hero__desc    { font-size: 14px; }
+  .home__section-spacer { height: 40px; }
+}

@@ -1,0 +1,350 @@
+.movie-detail {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+
+
+/* Hero backdrop */
+.movie-detail__hero {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 420px;
+  background-size: cover;
+  background-position: center 20%;
+  z-index: 0;
+}
+
+.movie-detail__hero-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(8, 5, 5, 0.4) 0%, rgba(8, 5, 5, 0.85) 60%, rgba(8, 5, 5, 1) 100%);
+}
+
+.movie-detail__hero-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to top, var(--bg), transparent);
+}
+
+/* Content */
+.movie-detail__content {
+  position: relative;
+  z-index: 1;
+  padding-top: 280px;
+  padding-bottom: 60px;
+}
+
+/* Header row: poster + info + downloads */
+.movie-detail__header {
+  display: grid;
+  grid-template-columns: 160px 1fr 280px;
+  gap: 32px;
+  align-items: start;
+  margin-bottom: 48px;
+}
+
+.movie-detail__poster {
+  border-radius: var(--rounded-sm);
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+
+.movie-detail__poster img {
+  width: 100%;
+  display: block;
+}
+
+.movie-detail__genres {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.movie-detail__title {
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+  line-height: 1.05;
+}
+
+.movie-detail__meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.movie-detail__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Downloads panel */
+.movie-detail__downloads {
+  border-radius: var(--rounded-lg);
+  padding: 20px;
+  align-self: start;
+}
+
+.movie-detail__downloads-title {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.download-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 12px;
+}
+
+.download-item:last-child {
+  border-bottom: none;
+}
+
+.download-item__quality {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.download-item__size {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.download-item__btn {
+  background: var(--surface-10);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--rounded-md);
+  color: var(--text-muted);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+
+.download-item__btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Body */
+.movie-detail__body {
+  margin-bottom: 48px;
+}
+
+.movie-detail__overview h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.movie-detail__overview p {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.75;
+  max-width: 700px;
+  margin-bottom: 28px;
+}
+
+.movie-detail__credits {
+  display: flex;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+
+.credit-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.credit-item .label {
+  color: var(--text-dim);
+}
+
+.credit-item span:last-child {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Trailer */
+.movie-detail__trailer {
+  margin-bottom: 48px;
+}
+
+.movie-detail__trailer h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.trailer-player {
+  position: relative;
+  border-radius: var(--rounded-lg);
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  max-height: 520px;
+  cursor: pointer;
+  background: #000;
+}
+
+.trailer-player__bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trailer-player__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.trailer-player__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: rgba(216, 64, 64, 0.9);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow var(--transition);
+  z-index: 2;
+}
+
+.trailer-player__play:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 0 24px rgba(216, 64, 64, 0.6);
+}
+
+.trailer-player__playing-msg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  color: var(--text);
+  z-index: 2;
+}
+
+.trailer-player__controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+  padding: 24px 16px 12px;
+  z-index: 3;
+}
+
+.trailer-controls-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+/* Stills */
+.movie-detail__stills {
+  margin-bottom: 48px;
+}
+
+.movie-detail__stills h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.stills-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.still-item {
+  border-radius: var(--rounded-sm);
+  overflow: hidden;
+  aspect-ratio: 16/9;
+}
+
+.still-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.still-item:hover img {
+  transform: scale(1.04);
+}
+
+/* Similar */
+.movie-detail__similar {
+  margin-bottom: 16px;
+}
+
+.similar-grid {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+}
+
+.similar-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.similar-grid .media-card {
+  flex: 0 0 160px;
+}
+
+@media (max-width: 1024px) {
+  .movie-detail__header {
+    grid-template-columns: 140px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .movie-detail__downloads {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .movie-detail__content {
+    padding-top: 200px;
+  }
+
+  .movie-detail__header {
+    grid-template-columns: 1fr;
+  }
+
+  .movie-detail__poster {
+    max-width: 140px;
+  }
+
+  .stills-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

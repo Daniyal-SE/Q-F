@@ -1,0 +1,73 @@
+/* ── Section root ────────────────────────────────────── */
+.content-section {
+  padding: 32px 0;
+}
+
+/* ── Navigation buttons ──────────────────────────────── */
+.content-section__nav-buttons {
+  display: flex;
+  gap: 8px;
+}
+.content-section__nav-btn {
+  background: var(--surface-light, rgba(255, 255, 255, 0.1));
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main, #fff);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.content-section__nav-btn:hover {
+  background: var(--primary, #E50914);
+  transform: scale(1.1);
+}
+
+/* ── Horizontal scroll row ───────────────────────────── */
+.content-section__scroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: none;
+  /* each card gets its width from the --card-w CSS var set inline */
+}
+.content-section__scroll::-webkit-scrollbar { display: none; }
+.content-section__scroll .media-card {
+  flex: 0 0 var(--card-w, 160px);
+  width: var(--card-w, 160px);
+}
+
+/* ── CSS grid layout ─────────────────────────────────── */
+.content-section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--grid-min, 160px), 1fr));
+  gap: 20px 16px;
+}
+/* Grid cards take full column width */
+.content-section__grid .media-card {
+  width: 100%;
+}
+.content-section__grid .media-card--sm,
+.content-section__grid .media-card--md,
+.content-section__grid .media-card--lg {
+  width: 100%;
+}
+
+/* ── Empty state ─────────────────────────────────────── */
+.content-section__empty {
+  color: var(--text-dim);
+  font-size: 14px;
+  padding: 32px 0;
+}
+
+@media (max-width: 768px) {
+  .content-section { padding: 24px 0; }
+  .content-section__scroll .media-card {
+    flex: 0 0 130px;
+    width: 130px;
+  }
+}
