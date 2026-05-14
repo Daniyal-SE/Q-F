@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import './Navbar.css';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Settings, Play, Palette } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import "./Navbar.css";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Search, Bell, Settings, Play, Palette } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: 'K-Drama', path: 'kdrama' },
-  { label: 'Bollywood', path: 'bollywood' },
-  { label: 'Hollywood', path: 'hollywood' },
-  { label: 'Anime Picks', path: 'anime-picks' },
-  { label: 'Anime', path: 'anime' },
+  { label: "K-Drama", path: "kdrama" },
+  { label: "Bollywood", path: "bollywood" },
+  { label: "Hollywood", path: "hollywood" },
+  { label: "Anime Picks", path: "anime-picks" },
+  { label: "Anime", path: "anime" },
 ];
 
 export default function Navbar() {
@@ -20,13 +20,13 @@ export default function Navbar() {
 
   // Handle hash scrolling from other pages
   useEffect(() => {
-    if (location.pathname === '/' && location.hash) {
+    if (location.pathname === "/" && location.hash) {
       setTimeout(() => {
-        const id = location.hash.replace('#', '');
+        const id = location.hash.replace("#", "");
         const element = document.getElementById(id);
         if (element) {
           const y = element.getBoundingClientRect().top + window.scrollY - 80;
-          window.scrollTo({ top: y, behavior: 'smooth' });
+          window.scrollTo({ top: y, behavior: "smooth" });
         }
       }, 100);
     }
@@ -48,18 +48,18 @@ export default function Navbar() {
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [open]);
 
   const toggleTheme = () => {
-    const isLight = document.body.classList.contains('theme-light');
+    const isLight = document.body.classList.contains("theme-light");
     if (isLight) {
-      document.body.classList.remove('theme-light');
+      document.body.classList.remove("theme-light");
       setIsAltTheme(false);
     } else {
-      document.body.classList.remove('theme-alt');
-      document.body.classList.add('theme-light');
+      document.body.classList.remove("theme-alt");
+      document.body.classList.add("theme-light");
       setIsAltTheme(true);
     }
   };
@@ -68,33 +68,38 @@ export default function Navbar() {
     e.preventDefault();
     setOpen(false);
 
-    if (location.pathname !== '/') {
+    if (location.pathname !== "/") {
       navigate(`/#${path}`);
     } else {
       const element = document.getElementById(path);
       if (element) {
         const y = element.getBoundingClientRect().top + window.scrollY - 80;
-        window.scrollTo({ top: y, behavior: 'smooth' });
+        window.scrollTo({ top: y, behavior: "smooth" });
       }
     }
   };
 
   return (
-    <header className={`navbar ${isVisible ? 'navbar--visible' : 'navbar--hidden'}`}>
+    <header
+      className={`navbar ${isVisible ? "navbar--visible" : "navbar--hidden"}`}
+    >
       <div className="navbar-pill">
-
         {/* ── Logo circle ───────────────────────────────── */}
-        <Link to="/" className="navbar-logo-circle" aria-label="CineStream Home">
+        <Link
+          to="/"
+          className="navbar-logo-circle"
+          aria-label="CineStream Home"
+        >
           <Play size={16} fill="#fff" strokeWidth={0} />
         </Link>
 
         {/* ── Nav links ─────────────────────────────────── */}
-        <nav className={`navbar-links ${open ? 'navbar-links--open' : ''}`}>
+        <nav className={`navbar-links ${open ? "navbar-links--open" : ""}`}>
           {NAV_LINKS.map(({ label, path }) => (
             <a
               key={path}
               href={`/#${path}`}
-              className={`navbar-link ${location.hash === `#${path}` ? 'active' : ''}`}
+              className={`navbar-link ${location.hash === `#${path}` ? "active" : ""}`}
               onClick={(e) => handleNavClick(e, path)}
             >
               {label}
@@ -107,7 +112,7 @@ export default function Navbar() {
           <button
             className="nav-icon-btn"
             aria-label="Search"
-            onClick={() => navigate('/search')}
+            onClick={() => navigate("/search")}
           >
             <Search size={17} strokeWidth={1.5} />
           </button>
@@ -119,17 +124,19 @@ export default function Navbar() {
             <Palette size={17} strokeWidth={1.5} />
           </button>
           <Link to="/dashboard" className="navbar-avatar" aria-label="Profile">
-            <img src="./img.jpeg" alt="User" />
+            <img src="/img.jpeg" alt="User avatar" />
           </Link>
         </div>
 
         {/* ── Mobile hamburger ──────────────────────────── */}
         <button
-          className={`navbar-hamburger ${open ? 'open' : ''}`}
+          className={`navbar-hamburger ${open ? "open" : ""}`}
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
         >
-          <span /><span /><span />
+          <span />
+          <span />
+          <span />
         </button>
       </div>
     </header>
