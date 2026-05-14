@@ -10,7 +10,9 @@
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 1s ease-in-out, transform 8s linear;
+  transition:
+    opacity 1s ease-in-out,
+    transform 8s linear;
   transform: scale(1.05);
   /* Slight zoom for ken burns effect */
   z-index: 1;
@@ -19,7 +21,7 @@
 .hero-carousel__slide.active {
   opacity: 1;
   transform: scale(1);
-  z-index: 2;
+  z-index: 8;
 }
 
 .hero-carousel__bg-media {
@@ -37,19 +39,23 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to right,
+    linear-gradient(
+      to right,
       rgba(8, 5, 5, 0.96) 30%,
       rgba(8, 5, 5, 0.55) 60%,
-      transparent 100%),
-    linear-gradient(to top,
+      transparent 100%
+    ),
+    linear-gradient(
+      to top,
       rgba(8, 5, 5, 1) 0%,
       rgba(8, 5, 5, 0.4) 40%,
-      transparent 70%);
+      transparent 70%
+    );
 }
 
 .hero-carousel__content {
   position: relative;
-  z-index: 3;
+  z-index: 6;
   width: 100%;
   height: 100%;
   display: flex;
@@ -210,14 +216,18 @@
     height: 40px;
   }
 
-  .hero-carousel__arrow--left { left: 15px; }
-  .hero-carousel__arrow--right { right: 15px; }
+  .hero-carousel__arrow--left {
+    left: 15px;
+  }
+  .hero-carousel__arrow--right {
+    right: 15px;
+  }
 }
 
 /* ── Mobile ─────────────────────────────────────────── */
 @media (max-width: 768px) {
   .hero-carousel {
-    height: 100svh;  /* Use small viewport height to avoid browser chrome overlap */
+    height: 100svh; /* Use small viewport height to avoid browser chrome overlap */
     min-height: 480px;
   }
 
@@ -229,14 +239,14 @@
   /* Lighter gradient so more of the image is visible */
   .hero-carousel__gradient {
     background:
-      linear-gradient(to top,
+      linear-gradient(
+        to top,
         rgba(0, 0, 0, 0.95) 0%,
         rgba(0, 0, 0, 0.5) 35%,
         rgba(0, 0, 0, 0.15) 65%,
-        transparent 100%),
-      linear-gradient(to right,
-        rgba(0, 0, 0, 0.6) 0%,
-        transparent 60%);
+        transparent 100%
+      ),
+      linear-gradient(to right, rgba(0, 0, 0, 0.6) 0%, transparent 60%);
   }
 
   .hero-carousel__title {
