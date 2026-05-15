@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 import '../components/ContentSection.css';
 import { useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, Zap, Star, Play, Edit, Bell, Shield, LogOut, ArrowLeft, Trash2, Lock, X, Check, KeyRound } from 'lucide-react';
+import { Clock, CheckCircle, Zap, Play, Edit, LogOut, Trash2, Lock, Shield, X, Check, KeyRound } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Button from '../components/Button';
@@ -43,8 +43,6 @@ export default function Dashboard() {
 
   // ── Misc ───────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(0);
-  const [theme, setTheme] = useState('dark');
-  const [notifs, setNotifs] = useState(true);
   const [history, setHistory] = useState([]);
 
   // ── Parental Controls ──────────────────────────────────────────────────────
@@ -202,7 +200,7 @@ export default function Dashboard() {
 
         {/* Watch History Tabs */}
         <section className="dashboard-section">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', gap: '12px', flexWrap: 'wrap' }}>
             <div className="dashboard-tabs" style={{ marginBottom: 0 }}>
               {tabs.map((t, i) => (
                 <button key={t} className={`dashboard-tab ${activeTab === i ? 'active' : ''}`} onClick={() => setActiveTab(i)}>
@@ -214,7 +212,7 @@ export default function Dashboard() {
               <button
                 onClick={clearHistory}
                 title="Clear watch history"
-                style={{ background: 'none', border: '1px solid var(--outline)', borderRadius: 'var(--rounded-md)', padding: '6px 12px', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', transition: 'color 0.2s, border-color 0.2s' }}
+                style={{ background: 'none', border: '1px solid var(--outline)', borderRadius: 'var(--rounded-md)', padding: '6px 12px', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', transition: 'color 0.2s, border-color 0.2s', flexShrink: 0 }}
                 onMouseEnter={e => { e.currentTarget.style.color = '#E50914'; e.currentTarget.style.borderColor = '#E50914'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--outline)'; }}
               >
@@ -250,29 +248,6 @@ export default function Dashboard() {
             <h2>Account Settings</h2>
           </div>
           <div className="settings-list glass-light">
-            {/* Theme */}
-            <div className="settings-item">
-              <div className="settings-item__icon-wrap"><Star size={18} strokeWidth={1.5} /></div>
-              <div className="settings-item__text">
-                <p className="settings-item__title">Theme Mode</p>
-                <p className="settings-item__desc">Switch between dark and light cinematic experience</p>
-              </div>
-              <div className="settings-theme-toggle">
-                <button className={`theme-btn ${theme === 'dark' ? 'active' : ''}`} onClick={() => setTheme('dark')}>DARK</button>
-                <button className={`theme-btn ${theme === 'light' ? 'active' : ''}`} onClick={() => setTheme('light')}>LIGHT</button>
-              </div>
-            </div>
-            {/* Notifications */}
-            <div className="settings-item">
-              <div className="settings-item__icon-wrap"><Bell size={18} strokeWidth={1.5} /></div>
-              <div className="settings-item__text">
-                <p className="settings-item__title">Notifications</p>
-                <p className="settings-item__desc">Manage alerts for new releases and community mentions</p>
-              </div>
-              <div className={`toggle-switch ${notifs ? 'on' : ''}`} onClick={() => setNotifs(!notifs)} role="switch" aria-checked={notifs}>
-                <div className="toggle-switch__knob" />
-              </div>
-            </div>
             {/* Change Password */}
             <div className="settings-item">
               <div className="settings-item__icon-wrap"><KeyRound size={18} strokeWidth={1.5} /></div>
