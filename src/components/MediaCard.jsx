@@ -40,8 +40,7 @@ export default function MediaCard({
 
   const handleClick = () => {
     if (onNavigate) return onNavigate(item);
-    if (item.type === 'Anime') navigate(`/anime/${item.id}`);
-    else navigate(`/movie/${item.id}`);
+    navigate(`/tmdb/${item.id}?type=${item.type === 'TV Show' ? 'tv' : 'movie'}`);
   };
 
   const isWide = size === 'wide';

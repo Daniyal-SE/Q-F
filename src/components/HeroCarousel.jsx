@@ -103,7 +103,7 @@ export default function HeroCarousel({ slides }) {
                   <p className="hero-carousel__desc">{slide.desc}</p>
 
                   <div className="hero-carousel__actions">
-                    <Button variant="primary" size="lg" icon={Play} onClick={() => navigate(`/watch/${slide.tmdbId}`)}>
+                    <Button variant="primary" size="lg" icon={Play} onClick={() => navigate(`/tmdb/${slide.id}?type=${slide.mediaType || 'movie'}`)}>
                       Watch Now
                     </Button>
                     <Button variant="secondary" size="lg" icon={Download}>

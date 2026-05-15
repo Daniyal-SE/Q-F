@@ -16,6 +16,7 @@ export default function Search() {
   const [activeType, setActiveType] = useState('All');
   const [results, setResults] = useState([]);
   const [trending, setTrending] = useState([]);
+  const [history, setHistory] = useState(() => JSON.parse(localStorage.getItem('cinestream_search_history') || '[]'));
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [totalResults, setTotalResults] = useState(0);
@@ -30,17 +31,32 @@ export default function Search() {
           `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`
         );
         const data = await res.json();
-        
-        const formattedTrending = (data.results || []).slice(0, 18).map(item => ({
-          id: item.id,
-          title: item.title || item.name,
-          poster: item.poster_path ? `${IMG_BASE}${item.poster_path}` : null,
-          type: item.media_type === 'tv' ? 'TV Show' : 'Movie',
-          year: (item.release_date || item.first_air_date || '').split('-')[0] || 'N/A',
-          rating: item.vote_average ? item.vote_average.toFixed(1) : null,
-          genre: item.genre_ids?.[0] || null,
-        }));
-        
+
+        const adultEnabled = localStorage.getItem('cinestream_adult_enabled') === 'true';
+        const adultKeywords = ['sex', 'fuck', 'fucked', 'adult', '18+', 'erotic', 'porn', 'nude', 'sexually', 'romance'];
+        const containsAdultWord = (text) => {
+          if (!text) return false;
+          const lower = text.toLowerCase();
+          return adultKeywords.some(word => lower.includes(word));
+        };
+
+        const formattedTrending = (data.results || [])
+          .filter(item => {
+            if (adultEnabled) return true;
+            if (item.adult === true) return false;
+            if (containsAdultWord(item.title) || containsAdultWord(item.name) || containsAdultWord(item.overview)) return false;
+            return true;
+          })
+          .slice(0, 18).map(item => ({
+            id: item.id,
+            title: item.title || item.name,
+            poster: item.poster_path ? `${IMG_BASE}${item.poster_path}` : null,
+            type: item.media_type === 'tv' ? 'TV Show' : 'Movie',
+            year: (item.release_date || item.first_air_date || '').split('-')[0] || 'N/A',
+            rating: item.vote_average ? item.vote_average.toFixed(1) : null,
+            genre: item.genre_ids?.[0] || null,
+          }));
+
         setTrending(formattedTrending);
         setResults(formattedTrending);
       } catch (e) {
@@ -49,6 +65,21 @@ export default function Search() {
     };
     fetchTrending();
   }, []);
+
+  const saveToHistory = (q) => {
+    if (!q || q.length < 2) return;
+    setHistory(prev => {
+      const filtered = prev.filter(item => item.toLowerCase() !== q.toLowerCase());
+      const newHistory = [q, ...filtered].slice(0, 10);
+      localStorage.setItem('cinestream_search_history', JSON.stringify(newHistory));
+      return newHistory;
+    });
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem('cinestream_search_history');
+  };
 
   // Live search with debounce
   useEffect(() => {
@@ -72,23 +103,46 @@ export default function Search() {
       setError(null);
 
       try {
+        const adultEnabled = localStorage.getItem('cinestream_adult_enabled') === 'true';
+        const adultKeywords = ['sex', 'fuck', 'fucked', 'adult', '18+', 'erotic', 'porn', 'nude', 'sexually', 'romance', 'virgin'];
+        const containsAdultWord = (text) => {
+          if (!text) return false;
+          const lower = text.toLowerCase();
+          return adultKeywords.some(word => lower.includes(word));
+        };
+
+        // Silently block the search query if it contains adult words and adult content is disabled
+        if (!adultEnabled && containsAdultWord(query)) {
+          setResults([]);
+          setTotalResults(0);
+          setIsLoading(false);
+          return;
+        }
+
+        const adultParam = adultEnabled ? '&include_adult=true' : '&include_adult=false';
+
         // Choose endpoint based on type filter
         let url = '';
         if (activeType === 'Movie') {
-          url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&sort_by=release_date.desc&language=en-US&page=1`;
+          url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&sort_by=release_date.desc&language=en-US&page=1${adultParam}`;
         } else if (activeType === 'TV Show' || activeType === 'Anime') {
-          url = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1`;
+          url = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1${adultParam}`;
         } else {
-          url = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1`;
+          url = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1${adultParam}`;
         }
 
         const res = await fetch(url);
         if (!res.ok) throw new Error('Search failed');
         const data = await res.json();
 
-        // Format results sorted by release date (newest first)
         let formatted = (data.results || [])
           .filter(item => item.media_type !== 'person' && (item.poster_path || item.backdrop_path))
+          .filter(item => {
+            if (adultEnabled) return true;
+            if (item.adult === true) return false;
+            if (containsAdultWord(item.title) || containsAdultWord(item.name) || containsAdultWord(item.overview)) return false;
+            return true;
+          })
           .filter(item => activeType !== 'Anime' || (item.original_language === 'ja' || item.origin_country?.includes('JP')))
           .sort((a, b) => {
             const dateA = a.release_date || a.first_air_date || '0';
@@ -114,13 +168,14 @@ export default function Search() {
       } finally {
         setIsLoading(false);
       }
-    }, 350); // 350ms debounce — fast enough to feel instant
+    }, 500); // 500ms debounce
 
     return () => clearTimeout(timer);
   }, [query, activeType, trending]);
 
   const goToDetail = (item) => {
-    navigate(`/tmdb/${item.id}`);
+    saveToHistory(query.trim());
+    navigate(`/tmdb/${item.id}?type=${item.type === 'TV Show' ? 'tv' : 'movie'}`);
   };
 
   const clearQuery = () => setQuery('');
@@ -128,10 +183,6 @@ export default function Search() {
   return (
     <div className="search-page">
       <Navbar />
-
-      <button className="page-back-btn" onClick={() => navigate(-1)} aria-label="Go back">
-        <ArrowLeft size={16} strokeWidth={2} /> Back
-      </button>
 
       <div className="search-page__content">
         <div className="container">
@@ -160,6 +211,33 @@ export default function Search() {
               )}
             </div>
           </div>
+
+          {/* Recent Searches */}
+          {!query && history.length > 0 && (
+            <div className="search-history" style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span className="label" style={{ color: 'var(--text-dim)', fontSize: '11px' }}>Recent Searches:</span>
+                <button
+                  onClick={clearHistory}
+                  style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '11px', cursor: 'pointer', padding: '0 4px' }}
+                >
+                  Clear History
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {history.map((h, i) => (
+                  <button
+                    key={i}
+                    className="search-tag"
+                    onClick={() => setQuery(h)}
+                    style={{ background: 'var(--surface-10)', border: '1px solid var(--outline)' }}
+                  >
+                    {h}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Trending tags */}
           <div className="search-trending">

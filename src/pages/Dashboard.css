@@ -9,7 +9,8 @@
   height: 220px;
   background-size: cover;
   background-position: center;
-  margin-top: 66px;   /* pill navbar height */
+  margin-top: 66px;
+  /* pill navbar height */
 }
 
 .dashboard__cover-overlay {
@@ -46,11 +47,28 @@
 }
 
 .profile-card__avatar {
-  width: 90px;
-  height: 90px;
-  border-radius: var(--rounded-md);
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--primary-dark);
+  border: 3px solid var(--primary);
+}
+
+/* Letter-based avatar fallback */
+.profile-avatar-letter {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, #ff6b35 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 800;
+  color: white;
+  border: 3px solid var(--primary);
+  box-shadow: 0 0 24px rgba(229, 9, 20, 0.4);
+  user-select: none;
 }
 
 .profile-card__avatar-badge {
@@ -152,7 +170,10 @@
   scrollbar-width: none;
   padding-bottom: 8px;
 }
-.continue-grid::-webkit-scrollbar { display: none; }
+
+.continue-grid::-webkit-scrollbar {
+  display: none;
+}
 
 .continue-card {
   cursor: pointer;
@@ -452,8 +473,123 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .settings-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .profile-card {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+/* --- PIN Modal --- */
+.pin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.pin-modal {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  padding: 32px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+.pin-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.pin-modal-close:hover {
+  color: white;
+  background: var(--surface-10);
+}
+
+.pin-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.pin-modal-header h3 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.pin-modal-desc {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.pin-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pin-modal-input {
+  width: 100%;
+  background: var(--surface-10);
+  border: 1px solid var(--outline);
+  padding: 16px;
+  border-radius: 8px;
+  color: white;
+  font-size: 24px;
+  letter-spacing: 12px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.pin-modal-input:focus {
+  border-color: var(--primary);
+}
+
+.pin-error-text {
+  color: var(--primary);
+  font-size: 13px;
+  margin: 0;
+}
+
+.pin-submit-btn {
+  width: 100%;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

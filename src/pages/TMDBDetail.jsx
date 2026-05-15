@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './TMDBDetail.css';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Play, Star, ArrowLeft, Clock, Calendar, Globe } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Play, Star, Clock, Calendar, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -11,12 +11,22 @@ const IMG_BASE = 'https://image.tmdb.org/t/p/';
 export default function TMDBDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const typeParam = searchParams.get('type'); // 'tv' or 'movie'
+
   const [movie, setMovie] = useState(null);
-  const [trailer, setTrailer] = useState(null);
+  const [mediaType, setMediaType] = useState('movie');
+  const [season, setSeason] = useState(1);
+  const [episode, setEpisode] = useState(1);
   const [recommended, setRecommended] = useState([]);
+  const [stills, setStills] = useState([]);
+  const [episodesList, setEpisodesList] = useState([]);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [server, setServer] = useState('vidsrc');
   const topRef = useRef(null);
+  const epRowRef = useRef(null);
   const watchSecondsRef = useRef(0);
 
   useEffect(() => {
@@ -41,48 +51,72 @@ export default function TMDBDetail() {
           } else {
             history.unshift({
               id: movie.id,
-              title: movie.title,
+              title: movie.title || movie.name,
               poster: movie.poster_path ? `${IMG_BASE}w500${movie.poster_path}` : null,
-              year: movie.release_date?.split('-')[0] || 'N/A',
+              year: (movie.release_date || movie.first_air_date)?.split('-')[0] || 'N/A',
               genre: movie.genres?.[0]?.name || 'TMDB',
+              type: mediaType === 'tv' ? 'TV Show' : 'Movie',
               isTMDB: true,
               watchSeconds: watchSecondsRef.current
             });
           }
           localStorage.setItem('cinestream_watch_history', JSON.stringify(history.slice(0, 20)));
-        } catch (e) {}
+        } catch (e) { }
         watchSecondsRef.current = 0;
       }
     };
-  }, [playing, movie]);
+  }, [playing, movie, mediaType]);
 
   useEffect(() => {
     setPlaying(false);
     setLoading(true);
     setMovie(null);
+    setSeason(1);
+    setEpisode(1);
     topRef.current?.scrollIntoView({ behavior: 'smooth' });
 
     const fetchAll = async () => {
       try {
-        const [detailRes, videosRes, recRes] = await Promise.all([
-          fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=en-US&append_to_response=credits`),
-          fetch(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${TMDB_KEY}&language=en-US`),
-          fetch(`https://api.themoviedb.org/3/movie/${id}/recommendations?api_key=${TMDB_KEY}&language=en-US&page=1`),
+        let currentMediaType = typeParam === 'tv' ? 'tv' : 'movie';
+        let detailRes = await fetch(`https://api.themoviedb.org/3/${currentMediaType}/${id}?api_key=${TMDB_KEY}&language=en-US&append_to_response=credits`);
+        let detail = await detailRes.json();
+
+        // Fallback logic if we guessed wrong and user didn't provide a strict type parameter
+        if ((!detail || detail.success === false) && !typeParam) {
+          currentMediaType = 'tv';
+          detailRes = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_KEY}&language=en-US&append_to_response=credits`);
+          detail = await detailRes.json();
+        }
+
+        const adultParam = localStorage.getItem('cinestream_adult_enabled') === 'true' ? '&include_adult=true' : '&include_adult=false';
+
+        const [recRes, imgRes] = await Promise.all([
+          fetch(`https://api.themoviedb.org/3/${currentMediaType}/${id}/recommendations?api_key=${TMDB_KEY}&language=en-US&page=1${adultParam}`),
+          fetch(`https://api.themoviedb.org/3/${currentMediaType}/${id}/images?api_key=${TMDB_KEY}`)
         ]);
 
-        const detail = await detailRes.json();
-        const videos = await videosRes.json();
         const rec = await recRes.json();
+        const imgData = await imgRes.json();
 
         setMovie(detail);
+        setMediaType(currentMediaType);
 
-        // Find the best trailer
-        const trailerVideo =
-          videos.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube') ||
-          videos.results?.find(v => v.site === 'YouTube');
-        setTrailer(trailerVideo || null);
+        const adultKeywords = ['sex', 'fuck', 'fucked', 'adult', '18+', 'erotic', 'porn', 'nude', 'sexually', 'romance'];
+        const containsAdultWord = (text) => {
+          if (!text) return false;
+          const lower = text.toLowerCase();
+          return adultKeywords.some(word => lower.includes(word));
+        };
 
-        setRecommended(rec.results?.slice(0, 18) || []);
+        setRecommended(rec.results?.filter(m => {
+          if (adultEnabled) return true;
+          if (m.adult === true) return false;
+          if (containsAdultWord(m.title) || containsAdultWord(m.name) || containsAdultWord(m.overview)) return false;
+          return true;
+        }).slice(0, 18) || []);
+
+        // Filter out bad aspect ratios or low quality if needed, just take first 6 backdrops
+        setStills(imgData.backdrops?.slice(0, 6) || []);
       } catch (e) {
         console.error('TMDB fetch error:', e);
       } finally {
@@ -91,7 +125,22 @@ export default function TMDBDetail() {
     };
 
     fetchAll();
-  }, [id]);
+  }, [id, typeParam]);
+
+  useEffect(() => {
+    if (mediaType === 'tv' && movie) {
+      const fetchEpisodes = async () => {
+        try {
+          const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}?api_key=${TMDB_KEY}&language=en-US`);
+          const data = await res.json();
+          setEpisodesList(data.episodes || []);
+        } catch (e) {
+          console.error("Episode fetch error", e);
+        }
+      };
+      fetchEpisodes();
+    }
+  }, [season, id, mediaType, movie]);
 
   if (loading) {
     return (
@@ -99,7 +148,7 @@ export default function TMDBDetail() {
         <Navbar />
         <div className="tmdb-detail__loading">
           <div className="tmdb-detail__spinner" />
-          <p>Loading movie details...</p>
+          <p>Loading details...</p>
         </div>
       </div>
     );
@@ -110,7 +159,7 @@ export default function TMDBDetail() {
       <div className="tmdb-detail">
         <Navbar />
         <div className="tmdb-detail__loading">
-          <p>Movie not found.</p>
+          <p>Content not found.</p>
           <button className="btn btn-primary" onClick={() => navigate(-1)}>Go Back</button>
         </div>
       </div>
@@ -120,21 +169,50 @@ export default function TMDBDetail() {
   const backdropUrl = movie.backdrop_path
     ? `${IMG_BASE}original${movie.backdrop_path}`
     : movie.poster_path
-    ? `${IMG_BASE}w1280${movie.poster_path}`
-    : null;
+      ? `${IMG_BASE}w1280${movie.poster_path}`
+      : null;
 
   const posterUrl = movie.poster_path
     ? `${IMG_BASE}w500${movie.poster_path}`
     : null;
 
-  const releaseYear = movie.release_date?.split('-')[0] || 'N/A';
+  const title = movie.title || movie.name;
+  const releaseYear = (movie.release_date || movie.first_air_date)?.split('-')[0] || 'N/A';
   const runtime = movie.runtime
     ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m`
-    : 'N/A';
+    : movie.episode_run_time?.[0] ? `${movie.episode_run_time[0]}m` : 'N/A';
   const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
 
   const director = movie.credits?.crew?.find(c => c.job === 'Director')?.name || 'N/A';
   const cast = movie.credits?.cast?.slice(0, 5).map(c => c.name).join(', ') || 'N/A';
+
+  // Determine iframe source based on selected server
+  const getIframeSrc = () => {
+    if (server === 'vidsrc') {
+      return mediaType === 'tv'
+        ? `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
+        : `https://vidsrc.me/embed/movie?tmdb=${id}`;
+    }
+    if (server === 'vidsrcpro') {
+      return mediaType === 'tv'
+        ? `https://vidsrc.in/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
+        : `https://vidsrc.in/embed/movie?tmdb=${id}`;
+    }
+    if (server === 'autoembed') {
+      return mediaType === 'tv'
+        ? `https://vidsrc.pm/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
+        : `https://vidsrc.pm/embed/movie?tmdb=${id}`;
+    }
+    if (server === 'smashystream') {
+      return mediaType === 'tv'
+        ? `https://vidsrc.net/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
+        : `https://vidsrc.net/embed/movie?tmdb=${id}`;
+    }
+    return '';
+  };
+
+  const scrollLeft = () => epRowRef.current?.scrollBy({ left: -320, behavior: 'smooth' });
+  const scrollRight = () => epRowRef.current?.scrollBy({ left: 320, behavior: 'smooth' });
 
   return (
     <div className="tmdb-detail" ref={topRef}>
@@ -150,10 +228,6 @@ export default function TMDBDetail() {
         </div>
       )}
 
-      <button className="page-back-btn" onClick={() => navigate(-1)}>
-        <ArrowLeft size={16} strokeWidth={2} /> Back
-      </button>
-
       <div className="tmdb-detail__content container">
 
         {/* Header */}
@@ -162,7 +236,7 @@ export default function TMDBDetail() {
           {/* Poster */}
           {posterUrl && (
             <div className="tmdb-detail__poster">
-              <img src={posterUrl} alt={movie.title} />
+              <img src={posterUrl} alt={title} />
             </div>
           )}
 
@@ -175,7 +249,7 @@ export default function TMDBDetail() {
               ))}
             </div>
 
-            <h1 className="tmdb-detail__title">{movie.title}</h1>
+            <h1 className="tmdb-detail__title">{title}</h1>
 
             {movie.tagline && (
               <p className="tmdb-detail__tagline">"{movie.tagline}"</p>
@@ -199,15 +273,11 @@ export default function TMDBDetail() {
               )}
             </div>
 
-            <div className="tmdb-detail__actions" style={{ display: 'none' }}>
-              {/* Buttons removed as requested */}
-            </div>
-
             {/* Credits */}
             <div className="tmdb-detail__credits">
               <div className="credit-item">
-                <span className="label">Director</span>
-                <span>{director}</span>
+                <span className="label">{mediaType === 'tv' ? 'Creator' : 'Director'}</span>
+                <span>{mediaType === 'tv' ? (movie.created_by?.[0]?.name || 'N/A') : director}</span>
               </div>
               <div className="credit-item">
                 <span className="label">Starring</span>
@@ -229,67 +299,157 @@ export default function TMDBDetail() {
           <p>{movie.overview || 'No description available.'}</p>
         </div>
 
-        {/* Trailer */}
-        {trailer && (
-          <div className="tmdb-detail__trailer">
-            <h2>Official Trailer</h2>
-            <div className="trailer-player">
-              {!playing ? (
-                <>
-                  {backdropUrl && (
-                    <img
-                      className="trailer-player__bg"
-                      src={backdropUrl}
-                      alt="trailer backdrop"
-                    />
-                  )}
-                  <div className="trailer-player__overlay" />
-                  <button
-                    className="trailer-player__play"
-                    onClick={() => setPlaying(true)}
-                    aria-label="Play trailer"
-                  >
-                    <Play size={28} fill="white" strokeWidth={0} />
-                  </button>
-                </>
-              ) : (
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
-                  title="Official Trailer"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+        {/* Stream Player */}
+        <div className="tmdb-detail__trailer">
+          <h2>Stream {mediaType === 'tv' ? 'Series' : 'Movie'}</h2>
+
+          {mediaType === 'tv' && (
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+              <select
+                value={season}
+                onChange={(e) => { setSeason(e.target.value); setEpisode(1); }}
+                style={{ padding: '8px 12px', borderRadius: '6px', background: 'var(--surface-10)', color: 'white', border: '1px solid var(--outline)', fontSize: '14px', outline: 'none', cursor: 'pointer' }}
+              >
+                {movie.seasons?.filter(s => s.season_number > 0).map(s => (
+                  <option key={s.season_number} value={s.season_number}>Season {s.season_number}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {playing && (
+            <div className="server-switcher" style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'flex', alignItems: 'center', marginRight: '8px' }}>Servers:</span>
+              <button onClick={() => setServer('vidsrc')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'vidsrc' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 1 (Fast)</button>
+              <button onClick={() => setServer('vidsrcpro')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'vidsrcpro' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 2 (Pro)</button>
+              <button onClick={() => setServer('autoembed')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'autoembed' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 3 (Alt)</button>
+              <button onClick={() => setServer('smashystream')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'smashystream' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 4</button>
+            </div>
+          )}
+
+          <div className="trailer-player">
+            {!playing ? (
+              <>
+                {backdropUrl && (
+                  <img
+                    className="trailer-player__bg"
+                    src={backdropUrl}
+                    alt="stream backdrop"
+                  />
+                )}
+                <div className="trailer-player__overlay" />
+                <button
+                  className="trailer-player__play"
+                  onClick={() => setPlaying(true)}
+                  aria-label={`Play ${mediaType === 'tv' ? 'Episode' : 'Movie'}`}
+                >
+                  <Play size={28} fill="white" strokeWidth={0} />
+                </button>
+              </>
+            ) : (
+              <iframe
+                width="100%"
+                height="100%"
+                src={getIframeSrc()}
+                title="Stream Player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: '8px' }}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Episodes Row */}
+        {mediaType === 'tv' && episodesList.length > 0 && (
+          <div className="tmdb-detail__episodes" style={{ marginTop: '80px', position: 'relative' }}>
+            <h2 style={{ marginBottom: '16px', fontSize: '22px' }}>Season {season} Episodes</h2>
+
+            <button className="ep-arrow left" onClick={scrollLeft} style={{ position: 'absolute', left: '-20px', top: '55%', transform: 'translateY(-50%)', zIndex: 10, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ChevronLeft size={24} />
+            </button>
+
+            <div ref={epRowRef} style={{ display: 'flex', overflowX: 'auto', gap: '20px', scrollbarWidth: 'none', msOverflowStyle: 'none', scrollSnapType: 'x mandatory', paddingBottom: '10px' }}>
+              {episodesList.map(ep => (
+                <div
+                  key={ep.id}
+                  onClick={() => { setEpisode(ep.episode_number); setPlaying(true); topRef.current?.scrollIntoView({ behavior: 'smooth' }); }}
+                  style={{ flex: '0 0 280px', scrollSnapAlign: 'start', background: 'var(--surface)', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', border: Number(episode) === ep.episode_number ? '2px solid var(--primary)' : '2px solid transparent', transition: '0.2s' }}
+                >
+                  <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: 'var(--surface-10)', position: 'relative' }}>
+                    {ep.still_path ? (
+                      <img src={`${IMG_BASE}w300${ep.still_path}`} alt={ep.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>No Image</div>
+                    )}
+                    <div style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.7)', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>
+                      Ep {ep.episode_number}
+                    </div>
+                  </div>
+                  <div style={{ padding: '12px' }}>
+                    <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ep.name}</h4>
+                    <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-dim)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {ep.overview || 'No overview available.'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button className="ep-arrow right" onClick={scrollRight} style={{ position: 'absolute', right: '-20px', top: '55%', transform: 'translateY(-50%)', zIndex: 10, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ChevronRight size={24} />
+            </button>
+            <style dangerouslySetInnerHTML={{
+              __html: `
+              .tmdb-detail__episodes > div::-webkit-scrollbar { display: none; }
+              @media (max-width: 768px) {
+                .ep-arrow { display: none !important; }
+                .tmdb-detail__episodes > div { padding: 0 16px; margin: 0 -16px; scroll-padding-left: 16px; }
+              }
+            `}} />
+          </div>
+        )}
+
+        {/* Stills */}
+        {stills.length > 0 && (
+          <div className="tmdb-detail__stills" style={{ marginTop: '80px' }}>
+            <h2 style={{ fontSize: '22px', marginBottom: '16px' }}>Movie Scene</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              {stills.map((still, i) => (
+                <img
+                  key={i}
+                  src={`${IMG_BASE}w500${still.file_path}`}
+                  alt="Scene"
+                  style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: '8px' }}
                 />
-              )}
+              ))}
             </div>
           </div>
         )}
 
         {/* Recommended Movies */}
         {recommended.length > 0 && (
-          <div className="tmdb-detail__recommended">
-            <h2>You May Also Like</h2>
+          <div className="tmdb-detail__recommended" style={{ marginTop: '80px' }}>
+            <h2 style={{ fontSize: '22px', marginBottom: '20px' }}>You May Also Like</h2>
             <div className="tmdb-recommended-grid">
               {recommended.map(rec => (
                 <div
                   key={rec.id}
                   className="tmdb-rec-card"
-                  onClick={() => navigate(`/tmdb/${rec.id}`)}
-                  title={rec.title}
+                  onClick={() => navigate(`/tmdb/${rec.id}?type=${mediaType}`)}
+                  title={rec.title || rec.name}
                 >
                   <div className="tmdb-rec-card__poster">
                     {rec.poster_path ? (
                       <img
                         src={`${IMG_BASE}w300${rec.poster_path}`}
-                        alt={rec.title}
+                        alt={rec.title || rec.name}
                         loading="lazy"
                       />
                     ) : (
                       <div className="tmdb-rec-card__no-poster">
-                        <span>{rec.title?.[0]}</span>
+                        <span>{(rec.title || rec.name)?.[0]}</span>
                       </div>
                     )}
                     <div className="tmdb-rec-card__overlay">
@@ -303,8 +463,8 @@ export default function TMDBDetail() {
                     )}
                   </div>
                   <div className="tmdb-rec-card__info">
-                    <p className="tmdb-rec-card__title">{rec.title}</p>
-                    <p className="tmdb-rec-card__year">{rec.release_date?.split('-')[0] || ''}</p>
+                    <p className="tmdb-rec-card__title">{rec.title || rec.name}</p>
+                    <p className="tmdb-rec-card__year">{(rec.release_date || rec.first_air_date)?.split('-')[0] || ''}</p>
                   </div>
                 </div>
               ))}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Navbar.css";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, Bell, Settings, Play, Palette } from "lucide-react";
+import { Search, Bell, Settings, Play, Palette, RefreshCw } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "K-Drama", path: "kdrama" },
@@ -115,6 +115,13 @@ export default function Navbar() {
             onClick={() => navigate("/search")}
           >
             <Search size={17} strokeWidth={1.5} />
+          </button>
+          <button
+            className="nav-icon-btn"
+            aria-label="Refresh Content"
+            onClick={() => window.location.reload()}
+          >
+            <RefreshCw size={17} strokeWidth={1.5} />
           </button>
           <button
             className="nav-icon-btn"

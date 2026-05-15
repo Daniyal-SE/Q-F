@@ -1,24 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 import '../components/ContentSection.css';
-import { useNavigate, Link } from 'react-router-dom';
-import { Clock, CheckCircle, Zap, Star, Play, Edit, Share2, Bell, Shield, LogOut, ChevronRight, ChevronLeft, ArrowLeft, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Clock, CheckCircle, Zap, Star, Play, Edit, Bell, Shield, LogOut, ArrowLeft, Trash2, Lock, X, Check, KeyRound } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Button from '../components/Button';
 import { dashboardData } from '../data/mockData';
 
-const DASHBOARD_BG = 'https://picsum.photos/seed/dashbg/1440/400';
+// ─── Hardcoded user accounts (same as Login.jsx) ─────────────────────────────
+const USERS = [
+  { username: 'tayyab4855', password: 'abcd1234', displayName: 'Tayyab' },
+  { username: 'admin',      password: 'admin123', displayName: 'Admin'  },
+];
 
+const DASHBOARD_BG = 'https://picsum.photos/seed/dashbg/1440/400';
 const tabs = ['WATCH HISTORY', 'FAVORITES', 'DOWNLOADS'];
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const d = dashboardData;
+
+  // ── Session / profile ──────────────────────────────────────────────────────
+  const sessionUser = sessionStorage.getItem('cinestream_user') || '';
+  const matchedUser = USERS.find(u => u.username === sessionUser);
+  const initials = matchedUser ? matchedUser.displayName[0].toUpperCase() : 'U';
+
+  // ── Profile edit state ─────────────────────────────────────────────────────
+  const [displayName, setDisplayName] = useState(
+    () => localStorage.getItem(`cinestream_name_${sessionUser}`) || (matchedUser?.displayName ?? sessionUser)
+  );
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editNameInput, setEditNameInput] = useState('');
+
+  // ── Change password state ──────────────────────────────────────────────────
+  const [showChangePwd, setShowChangePwd] = useState(false);
+  const [pwdCurrent, setPwdCurrent] = useState('');
+  const [pwdNew, setPwdNew] = useState('');
+  const [pwdConfirm, setPwdConfirm] = useState('');
+  const [pwdError, setPwdError] = useState('');
+  const [pwdSuccess, setPwdSuccess] = useState('');
+
+  // ── Misc ───────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(0);
   const [theme, setTheme] = useState('dark');
   const [notifs, setNotifs] = useState(true);
   const [history, setHistory] = useState([]);
+
+  // ── Parental Controls ──────────────────────────────────────────────────────
+  const [adultEnabled, setAdultEnabled] = useState(localStorage.getItem('cinestream_adult_enabled') === 'true');
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinMode, setPinMode] = useState('verify');
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('cinestream_watch_history') || '[]');
@@ -33,13 +67,76 @@ export default function Dashboard() {
     setHistory([]);
   };
 
+  // ── Profile edit ────────────────────────────────────────────────────────────
+  const openEditProfile = () => {
+    setEditNameInput(displayName);
+    setShowEditProfile(true);
+  };
+  const saveProfile = (e) => {
+    e.preventDefault();
+    if (!editNameInput.trim()) return;
+    const newName = editNameInput.trim();
+    setDisplayName(newName);
+    localStorage.setItem(`cinestream_name_${sessionUser}`, newName);
+    setShowEditProfile(false);
+  };
+
+  // ── Change password ─────────────────────────────────────────────────────────
+  const handleChangePwd = (e) => {
+    e.preventDefault();
+    setPwdError('');
+    setPwdSuccess('');
+    const user = USERS.find(u => u.username === sessionUser);
+    const savedPwd = localStorage.getItem(`cinestream_pwd_${sessionUser}`) || user?.password;
+    if (pwdCurrent !== savedPwd) {
+      setPwdError('Current password is incorrect.');
+      return;
+    }
+    if (pwdNew.length < 6) {
+      setPwdError('New password must be at least 6 characters.');
+      return;
+    }
+    if (pwdNew !== pwdConfirm) {
+      setPwdError('New passwords do not match.');
+      return;
+    }
+    localStorage.setItem(`cinestream_pwd_${sessionUser}`, pwdNew);
+    setPwdSuccess('Password changed successfully!');
+    setPwdCurrent(''); setPwdNew(''); setPwdConfirm('');
+    setTimeout(() => { setPwdSuccess(''); setShowChangePwd(false); }, 2000);
+  };
+
+  // ── Parental controls ───────────────────────────────────────────────────────
+  const handleAdultToggle = () => {
+    const existingPin = localStorage.getItem('cinestream_adult_pin');
+    setPinMode(existingPin ? 'verify' : 'setup');
+    setPinInput(''); setPinError('');
+    setShowPinModal(true);
+  };
+
+  const handlePinSubmit = (e) => {
+    e.preventDefault();
+    const existingPin = localStorage.getItem('cinestream_adult_pin');
+    if (pinMode === 'setup') {
+      if (pinInput.length !== 4) { setPinError('PIN must be 4 digits.'); return; }
+      localStorage.setItem('cinestream_adult_pin', pinInput);
+      localStorage.setItem('cinestream_adult_enabled', (!adultEnabled).toString());
+      setAdultEnabled(!adultEnabled);
+      setShowPinModal(false);
+    } else {
+      if (pinInput === existingPin) {
+        localStorage.setItem('cinestream_adult_enabled', (!adultEnabled).toString());
+        setAdultEnabled(!adultEnabled);
+        setShowPinModal(false);
+      } else {
+        setPinError('Incorrect PIN.');
+      }
+    }
+  };
+
   return (
     <div className="dashboard">
       <Navbar />
-
-      <button className="page-back-btn" onClick={() => navigate(-1)} aria-label="Go back">
-        <ArrowLeft size={16} strokeWidth={2} /> Back
-      </button>
 
       {/* Cover / Banner */}
       <div className="dashboard__cover" style={{ backgroundImage: `url(${DASHBOARD_BG})` }}>
@@ -50,13 +147,16 @@ export default function Dashboard() {
       <div className="container">
         <div className="profile-card glass">
           <div className="profile-card__left">
+            {/* Avatar — initial letter */}
             <div className="profile-card__avatar-wrap">
-              <img src={d.user.avatar} alt={d.user.name} className="profile-card__avatar" />
+              <div className="profile-card__avatar profile-avatar-letter">
+                {initials}
+              </div>
               <span className="profile-card__avatar-badge badge badge-primary">PRO</span>
             </div>
             <div className="profile-card__info">
-              <h1 className="profile-card__name">{d.user.name}</h1>
-              <p className="profile-card__bio">{d.user.bio}</p>
+              <h1 className="profile-card__name">{displayName}</h1>
+              <p className="profile-card__bio">@{sessionUser}</p>
               <div className="profile-card__tags">
                 <span className="badge badge-outline">Member since {d.user.memberSince}</span>
                 <span className="badge badge-outline">{d.user.badge}</span>
@@ -64,8 +164,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="profile-card__actions">
-            <Button variant="primary" size="sm" icon={Edit}>Edit Profile</Button>
-            <button className="btn btn--icon-only btn--sm"><Share2 size={16} strokeWidth={1.5} /></button>
+            <Button variant="primary" size="sm" icon={Edit} onClick={openEditProfile}>Edit Profile</Button>
           </div>
         </div>
 
@@ -101,18 +200,12 @@ export default function Dashboard() {
           </div>
         </section>
 
-
-
         {/* Watch History Tabs */}
         <section className="dashboard-section">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <div className="dashboard-tabs" style={{ marginBottom: 0 }}>
               {tabs.map((t, i) => (
-                <button
-                  key={t}
-                  className={`dashboard-tab ${activeTab === i ? 'active' : ''}`}
-                  onClick={() => setActiveTab(i)}
-                >
+                <button key={t} className={`dashboard-tab ${activeTab === i ? 'active' : ''}`} onClick={() => setActiveTab(i)}>
                   {t}
                 </button>
               ))}
@@ -159,9 +252,7 @@ export default function Dashboard() {
           <div className="settings-list glass-light">
             {/* Theme */}
             <div className="settings-item">
-              <div className="settings-item__icon-wrap">
-                <Star size={18} strokeWidth={1.5} />
-              </div>
+              <div className="settings-item__icon-wrap"><Star size={18} strokeWidth={1.5} /></div>
               <div className="settings-item__text">
                 <p className="settings-item__title">Theme Mode</p>
                 <p className="settings-item__desc">Switch between dark and light cinematic experience</p>
@@ -173,49 +264,145 @@ export default function Dashboard() {
             </div>
             {/* Notifications */}
             <div className="settings-item">
-              <div className="settings-item__icon-wrap">
-                <Bell size={18} strokeWidth={1.5} />
-              </div>
+              <div className="settings-item__icon-wrap"><Bell size={18} strokeWidth={1.5} /></div>
               <div className="settings-item__text">
                 <p className="settings-item__title">Notifications</p>
                 <p className="settings-item__desc">Manage alerts for new releases and community mentions</p>
               </div>
-              <div
-                className={`toggle-switch ${notifs ? 'on' : ''}`}
-                onClick={() => setNotifs(!notifs)}
-                role="switch"
-                aria-checked={notifs}
-              >
+              <div className={`toggle-switch ${notifs ? 'on' : ''}`} onClick={() => setNotifs(!notifs)} role="switch" aria-checked={notifs}>
                 <div className="toggle-switch__knob" />
               </div>
             </div>
+            {/* Change Password */}
+            <div className="settings-item">
+              <div className="settings-item__icon-wrap"><KeyRound size={18} strokeWidth={1.5} /></div>
+              <div className="settings-item__text">
+                <p className="settings-item__title">Change Password</p>
+                <p className="settings-item__desc">Update your account login password</p>
+              </div>
+              <span
+                className="label settings-manage-btn"
+                style={{ color: 'var(--primary)', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                onClick={() => { setShowChangePwd(true); setPwdError(''); setPwdSuccess(''); }}
+              >CHANGE</span>
+            </div>
             {/* Security */}
             <div className="settings-item">
-              <div className="settings-item__icon-wrap">
-                <Shield size={18} strokeWidth={1.5} />
-              </div>
+              <div className="settings-item__icon-wrap"><Shield size={18} strokeWidth={1.5} /></div>
               <div className="settings-item__text">
                 <p className="settings-item__title">Security &amp; Privacy</p>
                 <p className="settings-item__desc">Two-factor authentication and active sessions</p>
               </div>
               <span className="label settings-manage-btn" style={{ color: 'var(--text-dim)', fontSize: '11px', cursor: 'pointer' }}>MANAGE</span>
             </div>
+            {/* Parental Controls */}
+            <div className="settings-item">
+              <div className="settings-item__icon-wrap"><Lock size={18} strokeWidth={1.5} /></div>
+              <div className="settings-item__text">
+                <p className="settings-item__title">18+ Adult Content</p>
+                <p className="settings-item__desc">Toggle ON to SHOW mature content. Toggle OFF to HIDE it.</p>
+              </div>
+              <div className={`toggle-switch ${adultEnabled ? 'on' : ''}`} onClick={handleAdultToggle} role="switch" aria-checked={adultEnabled}>
+                <div className="toggle-switch__knob" />
+              </div>
+            </div>
             {/* Logout */}
             <div className="settings-item settings-item--danger">
-              <div className="settings-item__icon-wrap settings-item__icon-wrap--danger">
-                <LogOut size={18} strokeWidth={1.5} />
-              </div>
+              <div className="settings-item__icon-wrap settings-item__icon-wrap--danger"><LogOut size={18} strokeWidth={1.5} /></div>
               <div className="settings-item__text">
                 <p className="settings-item__title settings-item__title--danger">Logout</p>
                 <p className="settings-item__desc">Securely sign out of your premium account</p>
               </div>
-              <Button variant="primary" size="sm" onClick={() => navigate('/login')}>Sign Out</Button>
+              <Button variant="primary" size="sm" onClick={() => {
+                sessionStorage.removeItem('cinestream_session');
+                sessionStorage.removeItem('cinestream_user');
+                navigate('/login');
+              }}>Sign Out</Button>
             </div>
           </div>
         </section>
       </div>
 
       <Footer />
+
+      {/* ── Edit Profile Modal ─────────────────────────────────────────────── */}
+      {showEditProfile && (
+        <div className="pin-modal-overlay">
+          <div className="pin-modal glass">
+            <button className="pin-modal-close" onClick={() => setShowEditProfile(false)}><X size={20} /></button>
+            <div className="pin-modal-header">
+              <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 700, color: 'white' }}>{initials}</div>
+              <h3>Edit Profile</h3>
+            </div>
+            <p className="pin-modal-desc">Update your display name shown across CineStream.</p>
+            <form onSubmit={saveProfile} className="pin-modal-form">
+              <input
+                type="text"
+                value={editNameInput}
+                onChange={e => setEditNameInput(e.target.value)}
+                placeholder="Display Name"
+                className="pin-modal-input"
+                style={{ fontSize: '16px', letterSpacing: '1px', textAlign: 'left', padding: '14px 16px' }}
+                autoFocus
+              />
+              <Button variant="primary" type="submit" disabled={!editNameInput.trim()}>Save Changes</Button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Change Password Modal ──────────────────────────────────────────── */}
+      {showChangePwd && (
+        <div className="pin-modal-overlay">
+          <div className="pin-modal glass" style={{ maxWidth: '440px' }}>
+            <button className="pin-modal-close" onClick={() => setShowChangePwd(false)}><X size={20} /></button>
+            <div className="pin-modal-header">
+              <KeyRound size={24} color="var(--primary)" />
+              <h3>Change Password</h3>
+            </div>
+            <form onSubmit={handleChangePwd} className="pin-modal-form" style={{ gap: '12px' }}>
+              <input type="password" placeholder="Current password" value={pwdCurrent} onChange={e => setPwdCurrent(e.target.value)}
+                className="pin-modal-input" style={{ fontSize: '14px', letterSpacing: '2px', textAlign: 'left', padding: '14px 16px' }} required />
+              <input type="password" placeholder="New password (min 6 chars)" value={pwdNew} onChange={e => setPwdNew(e.target.value)}
+                className="pin-modal-input" style={{ fontSize: '14px', letterSpacing: '2px', textAlign: 'left', padding: '14px 16px' }} required />
+              <input type="password" placeholder="Confirm new password" value={pwdConfirm} onChange={e => setPwdConfirm(e.target.value)}
+                className="pin-modal-input" style={{ fontSize: '14px', letterSpacing: '2px', textAlign: 'left', padding: '14px 16px' }} required />
+              {pwdError && <p className="pin-error-text">{pwdError}</p>}
+              {pwdSuccess && <p style={{ color: '#22c55e', fontSize: '13px', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}><Check size={14} />{pwdSuccess}</p>}
+              <Button variant="primary" type="submit">Update Password</Button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Adult PIN Modal ────────────────────────────────────────────────── */}
+      {showPinModal && (
+        <div className="pin-modal-overlay">
+          <div className="pin-modal glass">
+            <button className="pin-modal-close" onClick={() => setShowPinModal(false)}><X size={20} /></button>
+            <div className="pin-modal-header">
+              <Lock size={24} color="var(--primary)" />
+              <h3>{pinMode === 'setup' ? 'Set Up 4-Digit PIN' : 'Enter 4-Digit PIN'}</h3>
+            </div>
+            <p className="pin-modal-desc">
+              {pinMode === 'setup'
+                ? 'Create a 4-digit PIN to restrict access to adult content.'
+                : `Enter your PIN to turn ${adultEnabled ? 'OFF' : 'ON'} adult content.`}
+            </p>
+            <form onSubmit={handlePinSubmit} className="pin-modal-form">
+              <input
+                type="password" maxLength={4} value={pinInput}
+                onChange={(e) => setPinInput(e.target.value.replace(/[^0-9]/g, ''))}
+                placeholder="0000" className="pin-modal-input" autoFocus
+              />
+              {pinError && <p className="pin-error-text">{pinError}</p>}
+              <Button variant="primary" type="submit" disabled={pinInput.length !== 4}>
+                {pinMode === 'setup' ? 'Set PIN' : 'Verify'}
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
