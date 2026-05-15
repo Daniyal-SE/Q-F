@@ -134,6 +134,15 @@ export default function TMDBDetail() {
           const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}?api_key=${TMDB_KEY}&language=en-US`);
           const data = await res.json();
           setEpisodesList(data.episodes || []);
+
+          // Use episode stills as scene images for TV shows
+          const episodeStills = (data.episodes || [])
+            .filter(ep => ep.still_path)
+            .slice(0, 9)
+            .map(ep => ({ file_path: ep.still_path }));
+          if (episodeStills.length > 0) {
+            setStills(episodeStills);
+          }
         } catch (e) {
           console.error("Episode fetch error", e);
         }
@@ -321,9 +330,7 @@ export default function TMDBDetail() {
             <div className="server-switcher" style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
               <span style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'flex', alignItems: 'center', marginRight: '8px' }}>Servers:</span>
               <button onClick={() => setServer('vidsrc')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'vidsrc' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 1 (Fast)</button>
-              <button onClick={() => setServer('vidsrcpro')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'vidsrcpro' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 2 (Pro)</button>
-              <button onClick={() => setServer('autoembed')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'autoembed' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 3 (Alt)</button>
-              <button onClick={() => setServer('smashystream')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'smashystream' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 4</button>
+              <button onClick={() => setServer('autoembed')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'autoembed' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 2 (Alt)</button>
             </div>
           )}
 
@@ -359,6 +366,13 @@ export default function TMDBDetail() {
               />
             )}
           </div>
+          {/* Fullscreen = landscape on mobile */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            @media (max-width: 768px) {
+              .trailer-player iframe:-webkit-full-screen { transform: rotate(90deg) scale(1.78); transform-origin: center center; }
+              .trailer-player iframe:fullscreen { transform: rotate(90deg) scale(1.78); transform-origin: center center; }
+            }
+          `}} />
         </div>
 
         {/* Episodes Row */}
@@ -411,17 +425,18 @@ export default function TMDBDetail() {
           </div>
         )}
 
-        {/* Stills */}
+        {/* Stills / Scenes */}
         {stills.length > 0 && (
           <div className="tmdb-detail__stills" style={{ marginTop: '80px' }}>
-            <h2 style={{ fontSize: '22px', marginBottom: '16px' }}>Movie Scene</h2>
+            <h2 style={{ fontSize: '22px', marginBottom: '16px' }}>{mediaType === 'tv' ? 'Scene Stills' : 'Movie Scenes'}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
               {stills.map((still, i) => (
                 <img
                   key={i}
-                  src={`${IMG_BASE}w500${still.file_path}`}
+                  src={`${IMG_BASE}w780${still.file_path}`}
                   alt="Scene"
-                  style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: '8px' }}
+                  style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: '8px', background: 'var(--surface-10)' }}
+                  loading="lazy"
                 />
               ))}
             </div>
