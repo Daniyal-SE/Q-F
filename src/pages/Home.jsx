@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ContentSection from '../components/ContentSection';
 import HeroCarousel from '../components/HeroCarousel';
+import OTTPlatformStrip from '../components/OTTPlatformStrip';
 
 const TMDB_KEY = '1fa448de74c5dac88e0d31d99c7e916d';
 const IMG_BASE = 'https://image.tmdb.org/t/p/w500';
@@ -131,6 +132,9 @@ export default function Home() {
 
       {/* ── Hero Carousel ──────────────────────────────────────── */}
       {heroSlides.length > 0 && <HeroCarousel slides={heroSlides} />}
+
+      {/* ── OTT Platforms ──────────────────────────────────────── */}
+      <OTTPlatformStrip />
 
       {/* ── Content rows ──────────────────────────────── */}
       <div className="home__content">

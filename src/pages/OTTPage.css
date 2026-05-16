@@ -1,0 +1,248 @@
+.ott-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #0f0f11;
+  color: #ffffff;
+}
+
+.ott-page__header {
+  margin-top: 70px; /* Space for navbar */
+  position: relative;
+  height: 300px;
+  background: linear-gradient(135deg, rgba(15, 15, 17, 0.2) 0%, rgba(15, 15, 17, 1) 100%), 
+              radial-gradient(circle at 70% 30%, var(--platform-color) 0%, transparent 50%);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.ott-page__header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url('https://www.transparenttextures.com/patterns/cubes.png') repeat;
+  opacity: 0.1;
+  mix-blend-mode: overlay;
+}
+
+.ott-page__header-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, #0f0f11 0%, transparent 100%);
+  z-index: 1;
+}
+
+.ott-page__header-content {
+  position: relative;
+  z-index: 2;
+  width: 92%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.ott-page__back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: fit-content;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.ott-page__back-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(-5px);
+}
+
+.ott-page__brand {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.ott-page__logo-wrapper {
+  width: 100px;
+  height: 100px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+.ott-page__logo {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  margin: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.ott-page__title-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 5px;
+}
+
+.ott-page__title-area h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: 1px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, #fff 0%, #aaa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ott-page__title-area p {
+  color: #a3a3a3;
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 400;
+}
+
+.ott-page__content {
+  width: 92%;
+  max-width: 1400px;
+  margin: 40px auto 80px;
+  flex: 1;
+}
+
+.ott-page__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+}
+
+.ott-page__spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid #fff; /* Replaced dynamically in inline style */
+  border-radius: 50%;
+  animation: ottSpin 1s linear infinite;
+}
+
+@keyframes ottSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.ott-page__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 25px;
+}
+
+.ott-page__empty {
+  text-align: center;
+  color: #a3a3a3;
+  padding: 100px 0;
+  font-size: 1.2rem;
+}
+
+.ott-page__pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 50px;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ott-page__page-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 100px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ott-page__page-btn:hover:not(:disabled) {
+  background: var(--platform-color);
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.ott-page__page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.ott-page__page-info {
+  font-size: 0.95rem;
+  color: #a3a3a3;
+}
+
+.ott-page__page-info span {
+  color: #fff;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .ott-page__header {
+    height: 260px;
+  }
+  .ott-page__brand {
+    align-items: center;
+  }
+  .ott-page__logo-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 18px;
+  }
+  .ott-page__title-area h1 {
+    font-size: 2rem;
+  }
+  .ott-page__title-area p {
+    font-size: 0.9rem;
+  }
+  .ott-page__grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+  .ott-page__pagination {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 1200px) and (min-width: 769px) {
+  .ott-page__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .ott-page__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}

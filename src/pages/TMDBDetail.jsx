@@ -151,10 +151,12 @@ export default function TMDBDetail() {
     }
   }, [season, id, mediaType, movie]);
 
+
+
   if (loading) {
     return (
       <div className="tmdb-detail">
-        <Navbar />
+        <Navbar showBack={true} />
         <div className="tmdb-detail__loading">
           <div className="tmdb-detail__spinner" />
           <p>Loading details...</p>
@@ -166,10 +168,9 @@ export default function TMDBDetail() {
   if (!movie || movie.success === false) {
     return (
       <div className="tmdb-detail">
-        <Navbar />
+        <Navbar showBack={true} />
         <div className="tmdb-detail__loading">
           <p>Content not found.</p>
-          <button className="btn btn-primary" onClick={() => navigate(-1)}>Go Back</button>
         </div>
       </div>
     );
@@ -225,7 +226,7 @@ export default function TMDBDetail() {
 
   return (
     <div className="tmdb-detail" ref={topRef}>
-      <Navbar />
+      <Navbar showBack={true} />
 
       {/* Hero backdrop */}
       {backdropUrl && (
@@ -367,7 +368,8 @@ export default function TMDBDetail() {
             )}
           </div>
           {/* Fullscreen = landscape on mobile */}
-          <style dangerouslySetInnerHTML={{ __html: `
+          <style dangerouslySetInnerHTML={{
+            __html: `
             @media (max-width: 768px) {
               .trailer-player iframe:-webkit-full-screen { transform: rotate(90deg) scale(1.78); transform-origin: center center; }
               .trailer-player iframe:fullscreen { transform: rotate(90deg) scale(1.78); transform-origin: center center; }

@@ -119,11 +119,8 @@ export default function AnimeDetail() {
 
   return (
     <div className="anime-detail">
-      <Navbar />
+      <Navbar showBack={true} />
 
-      <button className="page-back-btn" onClick={() => navigate(-1)} aria-label="Go back">
-        <ArrowLeft size={16} strokeWidth={2} /> Back
-      </button>
 
       {/* Hero */}
       <div className="anime-detail__hero" style={{ backgroundImage: `url("${a.hero}")` }}>

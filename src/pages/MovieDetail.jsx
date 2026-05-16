@@ -145,15 +145,9 @@ export default function MovieDetail() {
 
   return (
     <div className="movie-detail">
-      <Navbar />
+      <Navbar showBack={true} />
 
-      <button
-        className="page-back-btn"
-        onClick={() => navigate(-1)}
-        aria-label="Go back"
-      >
-        <ArrowLeft size={16} strokeWidth={2} /> Back
-      </button>
+
 
       {/* Hero backdrop */}
       <div

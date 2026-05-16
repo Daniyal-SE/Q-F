@@ -10,6 +10,7 @@ import MovieDetail from './pages/MovieDetail';
 import AnimeDetail from './pages/AnimeDetail';
 import WatchPage from './pages/WatchPage';
 import TMDBDetail from './pages/TMDBDetail';
+import OTTPage from './pages/OTTPage';
 import { Lock } from 'lucide-react';
 
 const APP_PIN = '1234'; // must match Login.jsx
@@ -132,6 +133,7 @@ export default function App() {
         <Route path="/anime/:id" element={<ProtectedRoute><AnimeDetail /></ProtectedRoute>} />
         <Route path="/watch/:id" element={<ProtectedRoute><WatchPage /></ProtectedRoute>} />
         <Route path="/tmdb/:id" element={<ProtectedRoute><TMDBDetail /></ProtectedRoute>} />
+        <Route path="/platform/:platformId" element={<ProtectedRoute><OTTPage /></ProtectedRoute>} />
         <Route path="/movies" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/anime" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/series" element={<ProtectedRoute><Home /></ProtectedRoute>} />

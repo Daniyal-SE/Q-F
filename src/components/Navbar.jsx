@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Navbar.css";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, Bell, Settings, Play, Palette, RefreshCw } from "lucide-react";
+import { Search, Bell, Settings, Play, Palette, RefreshCw, ArrowLeft } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "K-Drama", path: "kdrama" },
@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { label: "Anime", path: "anime" },
 ];
 
-export default function Navbar() {
+export default function Navbar({ showBack }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -83,6 +83,17 @@ export default function Navbar() {
     <header
       className={`navbar ${isVisible ? "navbar--visible" : "navbar--hidden"}`}
     >
+      {showBack && (
+        <button
+          className="navbar-global-back"
+          onClick={() => navigate(-1)}
+          aria-label="Go Back"
+        >
+          <ArrowLeft size={20} />
+          <span>Back</span>
+        </button>
+      )}
+
       <div className="navbar-pill">
         {/* ── Logo circle ───────────────────────────────── */}
         <Link

@@ -152,11 +152,8 @@ export default function WatchPage() {
 
   return (
     <div className="watch-page" ref={topRef}>
-      <Navbar />
+      <Navbar showBack={true} />
 
-      <button className="page-back-btn" onClick={() => navigate(-1)} aria-label="Go back">
-        <ArrowLeft size={16} strokeWidth={2} /> Back
-      </button>
 
       {/* ── Full-Screen Video Player ── */}
       <div className="watch-player" style={{ background: '#000', position: 'relative', aspectRatio: '16/9' }}>
