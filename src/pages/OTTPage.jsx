@@ -70,7 +70,8 @@ export default function OTTPage() {
     const fetchPlatformContent = async () => {
       setLoading(true);
       try {
-        const adultEnabled = localStorage.getItem('cinestream_adult_enabled') === 'true';
+        const userSession = sessionStorage.getItem('cinestream_user') || '';
+        const adultEnabled = localStorage.getItem(`cinestream_adult_enabled_${userSession}`) === 'true';
         const adultParam = adultEnabled ? '&include_adult=true' : '&include_adult=false';
 
         // Fetch both movies and TV shows for this platform

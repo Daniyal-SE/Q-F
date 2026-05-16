@@ -13,7 +13,10 @@ import TMDBDetail from './pages/TMDBDetail';
 import OTTPage from './pages/OTTPage';
 import { Lock } from 'lucide-react';
 
-const APP_PIN = '1234'; // must match Login.jsx
+const APP_USERS = [
+  { username: 'tayyab4855', pin: '0319' },
+  { username: 'admin',      pin: '1234' },
+];
 
 // ── PinGate — shown on every page refresh when a session exists ───────────────
 function PinGate({ onVerified }) {
@@ -22,7 +25,10 @@ function PinGate({ onVerified }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (pin === APP_PIN) {
+    const sessionUser = sessionStorage.getItem('cinestream_user') || '';
+    const userConfig = APP_USERS.find(u => u.username === sessionUser) || { pin: '1234' };
+
+    if (pin === userConfig.pin) {
       onVerified();
     } else {
       setError('Incorrect PIN. Please try again.');

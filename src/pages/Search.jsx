@@ -20,6 +20,8 @@ export default function Search() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [totalResults, setTotalResults] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const types = ['All', 'Movie', 'TV Show', 'Anime'];
 
@@ -32,7 +34,8 @@ export default function Search() {
         );
         const data = await res.json();
 
-        const adultEnabled = localStorage.getItem('cinestream_adult_enabled') === 'true';
+        const userSession = sessionStorage.getItem('cinestream_user') || '';
+        const adultEnabled = localStorage.getItem(`cinestream_adult_enabled_${userSession}`) === 'true';
         const adultKeywords = ['sex', 'fuck', 'fucked', 'adult', '18+', 'erotic', 'porn', 'nude', 'sexually', 'romance'];
         const containsAdultWord = (text) => {
           if (!text) return false;
@@ -94,16 +97,21 @@ export default function Search() {
       }
       setResults(filteredTrending);
       setTotalResults(filteredTrending.length);
+      setTotalPages(1);
       setError(null);
       return;
     }
 
     const timer = setTimeout(async () => {
-      setIsLoading(true);
+      // Don't show full loading spinner if just loading next page
+      if (page === 1) {
+        setIsLoading(true);
+      }
       setError(null);
 
       try {
-        const adultEnabled = localStorage.getItem('cinestream_adult_enabled') === 'true';
+        const userSession = sessionStorage.getItem('cinestream_user') || '';
+        const adultEnabled = localStorage.getItem(`cinestream_adult_enabled_${userSession}`) === 'true';
         const adultKeywords = ['sex', 'fuck', 'fucked', 'adult', '18+', 'erotic', 'porn', 'nude', 'sexually', 'romance', 'virgin'];
         const containsAdultWord = (text) => {
           if (!text) return false;
@@ -124,11 +132,11 @@ export default function Search() {
         // Choose endpoint based on type filter
         let url = '';
         if (activeType === 'Movie') {
-          url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&sort_by=release_date.desc&language=en-US&page=1${adultParam}`;
+          url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&sort_by=release_date.desc&language=en-US&page=${page}${adultParam}`;
         } else if (activeType === 'TV Show' || activeType === 'Anime') {
-          url = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1${adultParam}`;
+          url = `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=${page}${adultParam}`;
         } else {
-          url = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1${adultParam}`;
+          url = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=${page}${adultParam}`;
         }
 
         const res = await fetch(url);
@@ -159,26 +167,53 @@ export default function Search() {
             genre: item.genre_ids?.[0] || null,
           }));
 
-        setResults(formatted);
+        if (page === 1) {
+          setResults(formatted);
+        } else {
+          setResults(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const newItems = formatted.filter(f => !existingIds.has(f.id));
+            return [...prev, ...newItems];
+          });
+        }
         setTotalResults(data.total_results || formatted.length);
+        setTotalPages(data.total_pages || 1);
       } catch (err) {
         console.error('Search error:', err);
         setError('Failed to fetch results. Please try again.');
-        setResults([]);
+        if (page === 1) setResults([]);
       } finally {
         setIsLoading(false);
       }
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timer);
-  }, [query, activeType, trending]);
+  }, [query, activeType, trending, page]);
 
   const goToDetail = (item) => {
     saveToHistory(query.trim());
     navigate(`/tmdb/${item.id}?type=${item.type === 'TV Show' ? 'tv' : 'movie'}`);
   };
 
-  const clearQuery = () => setQuery('');
+  const clearQuery = () => {
+    setQuery('');
+    setPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setQuery(e.target.value);
+    setPage(1);
+  };
+
+  const handleTypeChange = (t) => {
+    setActiveType(t);
+    setPage(1);
+  };
+
+  const handleTagClick = (tag) => {
+    setQuery(tag);
+    setPage(1);
+  };
 
   return (
     <div className="search-page">
@@ -197,7 +232,7 @@ export default function Search() {
                 className="search-bar__input"
                 placeholder="Search any movie, TV show..."
                 value={query}
-                onChange={e => setQuery(e.target.value)}
+                onChange={handleSearchChange}
                 autoFocus
               />
               {query && (
@@ -229,7 +264,7 @@ export default function Search() {
                   <button
                     key={i}
                     className="search-tag"
-                    onClick={() => setQuery(h)}
+                    onClick={() => handleTagClick(h)}
                     style={{ background: 'var(--surface-10)', border: '1px solid var(--outline)' }}
                   >
                     {h}
@@ -243,7 +278,7 @@ export default function Search() {
           <div className="search-trending">
             <span className="label" style={{ color: 'var(--text-dim)', fontSize: '11px' }}>Trending:</span>
             {TRENDING_TAGS.map(tag => (
-              <button key={tag} className="search-tag" onClick={() => setQuery(tag)}>{tag}</button>
+              <button key={tag} className="search-tag" onClick={() => handleTagClick(tag)}>{tag}</button>
             ))}
           </div>
 
@@ -254,7 +289,7 @@ export default function Search() {
                 <button
                   key={t}
                   className={`search-type-tab ${activeType === t ? 'active' : ''}`}
-                  onClick={() => setActiveType(t)}
+                  onClick={() => handleTypeChange(t)}
                 >
                   {t}
                 </button>
@@ -321,6 +356,31 @@ export default function Search() {
               </>
             )}
           </div>
+
+          {/* Pagination / Load More */}
+          {query && !isLoading && !error && page < totalPages && (
+            <div style={{ textAlign: 'center', marginTop: '40px', gridColumn: '1 / -1' }}>
+              <button
+                onClick={() => setPage(p => p + 1)}
+                style={{
+                  background: 'var(--primary)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '12px 32px',
+                  borderRadius: '30px',
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 24px rgba(229, 9, 20, 0.3)',
+                  transition: 'transform 0.2s, background 0.2s'
+                }}
+                onMouseOver={e => e.target.style.transform = 'translateY(-2px)'}
+                onMouseOut={e => e.target.style.transform = 'none'}
+              >
+                Load Next Page
+              </button>
+            </div>
+          )}
 
         </div>
       </div>

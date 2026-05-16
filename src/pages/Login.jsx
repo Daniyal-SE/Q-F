@@ -5,11 +5,9 @@ import { User, Lock, Eye, EyeOff } from 'lucide-react';
 
 // ─── Hardcoded user accounts ──────────────────────────────────────────────────
 const USERS = [
-  { username: 'tayyab4855', password: 'abcd1234' },
-  { username: 'admin',      password: 'admin123' },
+  { username: 'tayyab4855', password: 'abcd1234', pin: '0319' },
+  { username: 'admin',      password: 'admin123', pin: '1234' },
 ];
-
-const APP_PIN = '1234'; // 4-digit app entry PIN
 
 const BG = 'https://image.tmdb.org/t/p/original/rqbCbjB19amtOtFQbb3K2lgm2zv.jpg';
 
@@ -48,7 +46,10 @@ export default function Login() {
   // ── Step 2: verify PIN ─────────────────────────────────────────────────────
   const handlePinSubmit = (e) => {
     e.preventDefault();
-    if (pin === APP_PIN) {
+    const activeUser = sessionStorage.getItem('cinestream_user');
+    const userConfig = USERS.find(u => u.username === activeUser) || { pin: '1234' };
+
+    if (pin === userConfig.pin) {
       // Full session granted
       sessionStorage.setItem('cinestream_session', 'active');
       navigate('/', { replace: true });

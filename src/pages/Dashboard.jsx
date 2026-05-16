@@ -46,7 +46,7 @@ export default function Dashboard() {
   const [history, setHistory] = useState([]);
 
   // ── Parental Controls ──────────────────────────────────────────────────────
-  const [adultEnabled, setAdultEnabled] = useState(localStorage.getItem('cinestream_adult_enabled') === 'true');
+  const [adultEnabled, setAdultEnabled] = useState(localStorage.getItem(`cinestream_adult_enabled_${sessionUser}`) === 'true');
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinMode, setPinMode] = useState('verify');
   const [pinInput, setPinInput] = useState('');
@@ -106,7 +106,7 @@ export default function Dashboard() {
 
   // ── Parental controls ───────────────────────────────────────────────────────
   const handleAdultToggle = () => {
-    const existingPin = localStorage.getItem('cinestream_adult_pin');
+    const existingPin = localStorage.getItem(`cinestream_adult_pin_${sessionUser}`);
     setPinMode(existingPin ? 'verify' : 'setup');
     setPinInput(''); setPinError('');
     setShowPinModal(true);
@@ -114,16 +114,16 @@ export default function Dashboard() {
 
   const handlePinSubmit = (e) => {
     e.preventDefault();
-    const existingPin = localStorage.getItem('cinestream_adult_pin');
+    const existingPin = localStorage.getItem(`cinestream_adult_pin_${sessionUser}`);
     if (pinMode === 'setup') {
       if (pinInput.length !== 4) { setPinError('PIN must be 4 digits.'); return; }
-      localStorage.setItem('cinestream_adult_pin', pinInput);
-      localStorage.setItem('cinestream_adult_enabled', (!adultEnabled).toString());
+      localStorage.setItem(`cinestream_adult_pin_${sessionUser}`, pinInput);
+      localStorage.setItem(`cinestream_adult_enabled_${sessionUser}`, (!adultEnabled).toString());
       setAdultEnabled(!adultEnabled);
       setShowPinModal(false);
     } else {
       if (pinInput === existingPin) {
-        localStorage.setItem('cinestream_adult_enabled', (!adultEnabled).toString());
+        localStorage.setItem(`cinestream_adult_enabled_${sessionUser}`, (!adultEnabled).toString());
         setAdultEnabled(!adultEnabled);
         setShowPinModal(false);
       } else {

@@ -28,7 +28,8 @@ export default function Home() {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const adultEnabled = localStorage.getItem('cinestream_adult_enabled') === 'true';
+        const userSession = sessionStorage.getItem('cinestream_user') || '';
+        const adultEnabled = localStorage.getItem(`cinestream_adult_enabled_${userSession}`) === 'true';
         const adultParam = adultEnabled ? '&include_adult=true' : '&include_adult=false';
         const movieCertParam = adultEnabled ? '' : '&certification_country=US&certification.lte=PG-13';
 

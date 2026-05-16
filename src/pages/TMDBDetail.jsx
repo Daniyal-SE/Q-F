@@ -88,7 +88,8 @@ export default function TMDBDetail() {
           detail = await detailRes.json();
         }
 
-        const adultParam = localStorage.getItem('cinestream_adult_enabled') === 'true' ? '&include_adult=true' : '&include_adult=false';
+        const userSession = sessionStorage.getItem('cinestream_user') || '';
+        const adultParam = localStorage.getItem(`cinestream_adult_enabled_${userSession}`) === 'true' ? '&include_adult=true' : '&include_adult=false';
 
         const [recRes, imgRes] = await Promise.all([
           fetch(`https://api.themoviedb.org/3/${currentMediaType}/${id}/recommendations?api_key=${TMDB_KEY}&language=en-US&page=1${adultParam}`),
