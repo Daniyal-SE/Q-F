@@ -50,19 +50,6 @@ export default function ContentSection({
   style,
   id,
 }) {
-  const scrollRef = React.useRef(null);
-
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
-    }
-  };
   return (
     <section
       id={id}
@@ -74,21 +61,22 @@ export default function ContentSection({
         {/* Section heading */}
         <div className="section-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>{title}</h2>
-          {layout === 'scroll' && items.length > 0 && (
-            <div className="content-section__nav-buttons">
-              <button className="content-section__nav-btn" onClick={scrollLeft} aria-label="Scroll left">
-                <ChevronLeft size={20} />
-              </button>
-              <button className="content-section__nav-btn" onClick={scrollRight} aria-label="Scroll right">
-                <ChevronRight size={20} />
-              </button>
-            </div>
+          {id && items.length > 0 && (
+            <Link 
+              to={`/category/${id}`}
+              style={{
+                fontSize: '13px', fontWeight: 600, color: 'var(--primary)',
+                textDecoration: 'none', background: 'none', border: 'none', cursor: 'pointer'
+              }}
+            >
+              See All →
+            </Link>
           )}
         </div>
 
         {/* Cards */}
         {layout === 'scroll' ? (
-          <div className="content-section__scroll" ref={scrollRef} style={{ '--card-w': cardWidth }}>
+          <div className="content-section__scroll" style={{ '--card-w': cardWidth }}>
             {items.map((item) => (
               <MediaCard
                 key={item.id}

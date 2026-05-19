@@ -12,8 +12,8 @@ const TRENDING_TAGS = ['Avengers', 'Spider-Man', 'Demon Slayer', 'Inception', 'I
 
 export default function Search() {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
-  const [activeType, setActiveType] = useState('All');
+  const [query, setQuery] = useState(() => sessionStorage.getItem('cinestream_last_query') || '');
+  const [activeType, setActiveType] = useState(() => sessionStorage.getItem('cinestream_last_type') || 'All');
   const [results, setResults] = useState([]);
   const [trending, setTrending] = useState([]);
   const [history, setHistory] = useState(() => JSON.parse(localStorage.getItem('cinestream_search_history') || '[]'));
@@ -142,6 +142,37 @@ export default function Search() {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Search failed');
         const data = await res.json();
+        
+        let imdbFormatted = [];
+        // Only fetch IMDB if query is reasonably long to avoid excessive API calls
+        if (query.length > 2 && (activeType === 'All' || activeType === 'Movie' || activeType === 'TV Show')) {
+          try {
+             const imdbRes = await fetch(`https://imdb236.p.rapidapi.com/imdb/search?originalTitle=${encodeURIComponent(query)}&rows=10`, {
+               headers: {
+                 'x-rapidapi-key': 'b7722b0064msh7cd5086cff01924p13b142jsna013f6e6bdde',
+                 'x-rapidapi-host': 'imdb236.p.rapidapi.com'
+               }
+             });
+             const imdbData = await imdbRes.json();
+             
+             if (imdbData.results && Array.isArray(imdbData.results)) {
+               imdbFormatted = imdbData.results
+                 .filter(item => item.id && item.id.startsWith('tt') && (item.primaryImage || item.poster))
+                 .map(item => ({
+                    id: item.id,
+                    title: item.primaryTitle || item.originalTitle || item.title,
+                    poster: item.primaryImage || item.poster,
+                    type: item.type === 'movie' ? 'Movie' : 'TV Show',
+                    year: item.startYear || item.year || 'N/A',
+                    rating: item.averageRating ? item.averageRating.toFixed(1) : null,
+                    genre: null,
+                    isIMDB: true
+                 }));
+             }
+          } catch(e) {
+             console.error('IMDB search error:', e);
+          }
+        }
 
         let formatted = (data.results || [])
           .filter(item => item.media_type !== 'person' && (item.poster_path || item.backdrop_path))
@@ -152,13 +183,8 @@ export default function Search() {
             return true;
           })
           .filter(item => activeType !== 'Anime' || (item.original_language === 'ja' || item.origin_country?.includes('JP')))
-          .sort((a, b) => {
-            const dateA = a.release_date || a.first_air_date || '0';
-            const dateB = b.release_date || b.first_air_date || '0';
-            return dateB.localeCompare(dateA);
-          })
           .map(item => ({
-            id: item.id,
+            id: item.id.toString(), // ensure string for Set comparison
             title: item.title || item.name,
             poster: item.poster_path ? `${IMG_BASE}${item.poster_path}` : null,
             type: item.media_type === 'tv' ? 'TV Show' : 'Movie',
@@ -166,17 +192,34 @@ export default function Search() {
             rating: item.vote_average ? item.vote_average.toFixed(1) : null,
             genre: item.genre_ids?.[0] || null,
           }));
+          
+        // Merge IMDB and TMDB. TMDB is usually better quality so keep it first.
+        const allFormatted = [...formatted, ...imdbFormatted].sort((a, b) => {
+            const dateA = String(a.year || '0');
+            const dateB = String(b.year || '0');
+            return dateB.localeCompare(dateA);
+        });
 
         if (page === 1) {
-          setResults(formatted);
+          // Remove exact title duplicates across APIs to prevent clutter
+          const uniqueTitles = new Set();
+          const finalResults = [];
+          for (const item of allFormatted) {
+            const tLower = item.title.toLowerCase();
+            if (!uniqueTitles.has(tLower)) {
+              uniqueTitles.add(tLower);
+              finalResults.push(item);
+            }
+          }
+          setResults(finalResults);
         } else {
           setResults(prev => {
-            const existingIds = new Set(prev.map(p => p.id));
-            const newItems = formatted.filter(f => !existingIds.has(f.id));
+            const existingTitles = new Set(prev.map(p => p.title.toLowerCase()));
+            const newItems = allFormatted.filter(f => !existingTitles.has(f.title.toLowerCase()));
             return [...prev, ...newItems];
           });
         }
-        setTotalResults(data.total_results || formatted.length);
+        setTotalResults(data.total_results ? data.total_results + imdbFormatted.length : allFormatted.length);
         setTotalPages(data.total_pages || 1);
       } catch (err) {
         console.error('Search error:', err);
@@ -189,6 +232,15 @@ export default function Search() {
 
     return () => clearTimeout(timer);
   }, [query, activeType, trending, page]);
+
+  // Persist state
+  useEffect(() => {
+    sessionStorage.setItem('cinestream_last_query', query);
+  }, [query]);
+
+  useEffect(() => {
+    sessionStorage.setItem('cinestream_last_type', activeType);
+  }, [activeType]);
 
   const goToDetail = (item) => {
     saveToHistory(query.trim());

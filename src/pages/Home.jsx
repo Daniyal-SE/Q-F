@@ -24,6 +24,11 @@ export default function Home() {
   const [action, setAction] = useState([]);
   const [scifi, setScifi] = useState([]);
   const [punjabi, setPunjabi] = useState([]);
+  const [romance, setRomance] = useState([]);
+  
+  const userSession = sessionStorage.getItem('cinestream_user') || '';
+  const isTayyab = userSession === 'tayyab4855';
+  const [unrestrictedRomance, setUnrestrictedRomance] = useState(() => localStorage.getItem('cinestream_romance_unrestricted') === 'true');
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -61,6 +66,10 @@ export default function Home() {
           const lower = text.toLowerCase();
           return adultKeywords.some(word => lower.includes(word));
         };
+
+        const romanceRes = isTayyab 
+          ? await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc${unrestrictedRomance ? '&include_adult=true' : '&include_adult=false'}`)
+          : null;
 
         const formatTMDB = (results, applyKeywordFilter = true) => results?.filter(m => {
           if (adultEnabled) return true;
@@ -119,13 +128,38 @@ export default function Home() {
         setScifi(formatTMDB(scifiData.results, true));
         setPunjabi(formatTMDB(punjabiData.results, false)); // No keyword filter for Punjabi
 
+        if (isTayyab && romanceRes) {
+          const romanceData = await romanceRes.json();
+          // Filter out adult content only if unrestricted is false
+          setRomance((romanceData.results || []).filter(m => {
+             if (unrestrictedRomance) return true;
+             if (m.adult === true) return false;
+             if (containsAdultWord(m.title) || containsAdultWord(m.overview)) return false;
+             return true;
+          }).slice(0, 18).map(m => ({
+            id: m.id,
+            title: m.title || m.name,
+            poster: m.poster_path ? `${IMG_BASE}${m.poster_path}` : null,
+            year: (m.release_date || m.first_air_date || '').split('-')[0],
+            rating: m.vote_average ? m.vote_average.toFixed(1) : null,
+            type: 'Movie',
+            isTMDB: true
+          })));
+        }
+
       } catch (err) {
         console.error("Failed to fetch TMDB home data:", err);
       }
     };
 
     fetchHomeData();
-  }, []);
+  }, [isTayyab, unrestrictedRomance]);
+
+  const toggleRomanceUnrestricted = () => {
+    const newVal = !unrestrictedRomance;
+    setUnrestrictedRomance(newVal);
+    localStorage.setItem('cinestream_romance_unrestricted', newVal);
+  };
 
   return (
     <div className="home">
@@ -238,6 +272,46 @@ export default function Home() {
             items={anime}
             cardProps={{ showRating: true, showYear: true }}
           />
+        )}
+
+        {isTayyab && romance.length > 0 && (
+          <div className="home__tayyab-section">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4% 10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <h2 style={{ fontSize: '22px', fontWeight: '800', margin: 0 }}>Romance</h2>
+                <button 
+                  onClick={toggleRomanceUnrestricted}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    border: '1px solid ' + (unrestrictedRomance ? '#ff4d4d' : 'var(--outline)'),
+                    background: unrestrictedRomance ? 'rgba(255, 77, 77, 0.2)' : 'var(--surface-10)',
+                    color: unrestrictedRomance ? '#ff4d4d' : 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: '700'
+                  }}
+                >
+                  {unrestrictedRomance ? '18+ Enabled' : 'Enable 18+'}
+                </button>
+              </div>
+              <button 
+                onClick={() => navigate('/category/romance')}
+                style={{
+                  background: 'none', border: 'none', color: 'var(--primary)',
+                  fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+                }}
+              >
+                See All →
+              </button>
+            </div>
+            <ContentSection
+              id="romance"
+              title=""
+              items={romance}
+              cardProps={{ showRating: true, showYear: true }}
+            />
+          </div>
         )}
 
       </div>

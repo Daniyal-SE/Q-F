@@ -33,6 +33,12 @@ export default function Navbar({ showBack }) {
   }, [location]);
 
   useEffect(() => {
+    // Always visible on detail/category pages that show a back button
+    if (showBack) {
+      setIsVisible(true);
+      return;
+    }
+
     const handleMouseMove = (e) => {
       // Keep visible on smaller screens like mobile/tablet
       if (window.innerWidth <= 1024) {
@@ -50,7 +56,7 @@ export default function Navbar({ showBack }) {
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [open]);
+  }, [open, showBack]);
 
   const toggleTheme = () => {
     const isLight = document.body.classList.contains("theme-light");
