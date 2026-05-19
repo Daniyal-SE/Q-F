@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
 :root {
   /* ── Core background palette — TRUE BLACK dark mode ── */
@@ -10,7 +10,7 @@
   --bg-highest: #2e2e2e;
 
   /* ── Brand colours ─────────────────────────────────── */
-  --primary: #E50914;
+  --primary: #e50914;
   --primary-dark: #b20710;
   --primary-container: #ff3b3b;
   --secondary: #ffffff;
@@ -34,9 +34,9 @@
   --bg-b: 0;
 
   /* ── Typography ─────────────────────────────────────── */
-  --font-heading: 'Montserrat', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-label: 'Space Grotesk', sans-serif;
+  --font-heading: "Montserrat", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Space Grotesk", sans-serif;
 
   /* ── Radii ───────────────────────────────────────────── */
   --rounded-sm: 0.25rem;
@@ -52,21 +52,21 @@
 
 /* ── LIGHT MODE — Off-White ─────────────────────────── */
 body.theme-light {
-  --bg: #F5F5F5;
-  --bg-low: #EEEEEE;
-  --bg-mid: #E8E8E8;
-  --bg-surface: #DFDFDF;
-  --bg-high: #D4D4D4;
-  --bg-highest: #C8C8C8;
+  --bg: #f5f5f5;
+  --bg-low: #eeeeee;
+  --bg-mid: #e8e8e8;
+  --bg-surface: #dfdfdf;
+  --bg-high: #d4d4d4;
+  --bg-highest: #c8c8c8;
 
   --text: #111111;
   --text-muted: #444444;
   --text-dim: #888888;
 
-  --outline: #CCCCCC;
-  --outline-variant: #BBBBBB;
+  --outline: #cccccc;
+  --outline-variant: #bbbbbb;
   --surface-10: rgba(0, 0, 0, 0.05);
-  --surface-15: rgba(0, 0, 0, 0.10);
+  --surface-15: rgba(0, 0, 0, 0.1);
   --surface-card: rgba(0, 0, 0, 0.03);
 
   --bg-r: 245;
@@ -282,7 +282,7 @@ select {
 }
 
 .section-heading h2::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
