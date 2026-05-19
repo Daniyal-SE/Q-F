@@ -415,6 +415,35 @@ export default function TMDBDetail() {
           <p>{movie.overview || 'No description available.'}</p>
         </div>
 
+        {/* Cast Section */}
+        {movie.credits?.cast?.length > 0 && (
+          <div className="tmdb-detail__cast" style={{ marginTop: '40px', marginBottom: '40px' }}>
+            <h2 style={{ fontSize: '22px', marginBottom: '16px' }}>Cast</h2>
+            <div style={{ display: 'flex', overflowX: 'auto', gap: '20px', paddingBottom: '10px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {movie.credits.cast.slice(0, 15).map(person => (
+                <div 
+                  key={person.id}
+                  onClick={() => navigate(`/cast/${person.id}?name=${encodeURIComponent(person.name)}`)}
+                  style={{ flex: '0 0 100px', textAlign: 'center', cursor: 'pointer' }}
+                >
+                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 8px', background: 'var(--surface-10)', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', border: '2px solid var(--outline)', transition: 'border-color 0.2s' }}
+                       onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                       onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--outline)'}>
+                    {person.profile_path ? (
+                      <img src={`https://image.tmdb.org/t/p/w185${person.profile_path}`} alt={person.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--text-dim)' }}>{person.name?.[0]}</span>
+                    )}
+                  </div>
+                  <h4 style={{ fontSize: '13px', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text)' }}>{person.name}</h4>
+                  <p style={{ fontSize: '11px', margin: 0, color: 'var(--text-dim)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{person.character}</p>
+                </div>
+              ))}
+            </div>
+            <style dangerouslySetInnerHTML={{__html: `.tmdb-detail__cast > div::-webkit-scrollbar { display: none; }`}} />
+          </div>
+        )}
+
         {/* Stream Player */}
         <div className="tmdb-detail__trailer">
           <h2>Stream {mediaType === 'tv' ? 'Series' : 'Movie'}</h2>

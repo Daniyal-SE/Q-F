@@ -12,6 +12,7 @@ import WatchPage from './pages/WatchPage';
 import TMDBDetail from './pages/TMDBDetail';
 import OTTPage from './pages/OTTPage';
 import CategoryPage from './pages/CategoryPage';
+import CastPage from './pages/CastPage';
 import { Lock } from 'lucide-react';
 
 const APP_USERS = [
@@ -214,6 +215,7 @@ export default function App() {
         <Route path="/series" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/mylist" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/category/:categoryId" element={<ProtectedRoute><CategoryPage /></ProtectedRoute>} />
+        <Route path="/cast/:castId" element={<ProtectedRoute><CastPage /></ProtectedRoute>} />
         <Route path="*" element={<ProtectedRoute><Home /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
