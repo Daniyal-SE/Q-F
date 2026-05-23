@@ -7,16 +7,18 @@ const ExerciseTracker: React.FC = () => {
   const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isActive) {
       interval = setInterval(() => {
         setSeconds((s) => s + 1);
       }, 1000);
-    } else if (!isActive && seconds !== 0) {
-      clearInterval(interval);
     }
-    return () => clearInterval(interval);
-  }, [isActive, seconds]);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isActive]);
 
   const toggleTimer = () => setIsActive(!isActive);
   const stopTimer = () => {

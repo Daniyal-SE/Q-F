@@ -168,13 +168,12 @@ const AiFoodScanner: React.FC = () => {
                   {/* Camera / Capture / Stop button */}
                   <div
                     onClick={(e) => { e.stopPropagation(); handleCameraButton(); }}
-                    className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-[#6bfb9a]/20 active:scale-90 transition-all cursor-pointer select-none ${
-                      isStartingCamera
+                    className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-[#6bfb9a]/20 active:scale-90 transition-all cursor-pointer select-none ${isStartingCamera
                         ? "bg-[#6bfb9a]/60 text-[#003919]"
                         : isStreaming
-                        ? "bg-white text-[#003919]"
-                        : "bg-[#6bfb9a] text-[#003919]"
-                    }`}
+                          ? "bg-white text-[#003919]"
+                          : "bg-[#6bfb9a] text-[#003919]"
+                      }`}
                   >
                     <span
                       className="material-symbols-outlined text-3xl"
@@ -218,8 +217,8 @@ const AiFoodScanner: React.FC = () => {
                     {isStartingCamera
                       ? "Opening camera…"
                       : isStreaming
-                      ? "Tap camera to capture"
-                      : "Tap camera to scan"}
+                        ? "Tap camera to capture"
+                        : "Tap camera to scan"}
                   </p>
                 )}
 

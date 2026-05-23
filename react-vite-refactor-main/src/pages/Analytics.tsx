@@ -289,8 +289,8 @@ const Analytics = () => {
                 >
                   <div
                     className={`w-6 md:w-8 rounded-t-lg transition-all duration-300 ${bar.active
-                        ? "bg-kinetic-primary-container"
-                        : "bg-kinetic-surface-container-highest hover:bg-kinetic-primary"
+                      ? "bg-kinetic-primary-container"
+                      : "bg-kinetic-surface-container-highest hover:bg-kinetic-primary"
                       }`}
                     style={{ height: `${bar.height}%` }}
                   />

@@ -27,7 +27,7 @@ const CravingDefeated2 = () => {
           const completed = records.filter((r: { completed?: boolean }) => r.completed).length;
           setConsistency(Math.round((completed / records.length) * 100));
         }
-      } catch(e) {
+      } catch (e) {
         // Ignore parsing errors
       }
     }

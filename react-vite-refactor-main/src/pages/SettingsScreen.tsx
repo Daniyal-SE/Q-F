@@ -109,7 +109,7 @@ const SettingsScreen = () => {
               arrow_back
             </span>
           </button>
-          
+
           <h1
             className="font-black tracking-tighter text-lg sm:text-2xl text-[#4ade80] uppercase"
             style={{ fontFamily: "'Manrope', sans-serif" }}
@@ -202,11 +202,10 @@ const SettingsScreen = () => {
               <button
                 key={avatar.id}
                 onClick={() => handleAvatarChange(avatar.id)}
-                className={`relative rounded-xl overflow-hidden transition-all duration-300 ${
-                  selectedAvatar === avatar.id
+                className={`relative rounded-xl overflow-hidden transition-all duration-300 ${selectedAvatar === avatar.id
                     ? "ring-2 ring-kinetic-primary scale-105"
                     : "ring-1 ring-kinetic-outline-variant/20"
-                }`}
+                  }`}
               >
                 <div className="aspect-square overflow-hidden bg-kinetic-surface-container">
                   <img

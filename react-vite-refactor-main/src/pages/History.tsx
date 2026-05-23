@@ -170,19 +170,16 @@ const History = () => {
                 <div key={i} className="flex gap-6 group">
                   <div className="relative z-10">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        item.status === "success"
-                          ? `bg-kinetic-primary-container ${
-                              item.glow
-                                ? "shadow-[0_0_15px_hsla(var(--kinetic-primary)/0.4)]"
-                                : ""
-                            }`
-                          : `bg-kinetic-secondary-container ${
-                              item.glow
-                                ? "shadow-[0_0_15px_hsla(0,100%,64%,0.4)]"
-                                : ""
-                            }`
-                      }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${item.status === "success"
+                          ? `bg-kinetic-primary-container ${item.glow
+                            ? "shadow-[0_0_15px_hsla(var(--kinetic-primary)/0.4)]"
+                            : ""
+                          }`
+                          : `bg-kinetic-secondary-container ${item.glow
+                            ? "shadow-[0_0_15px_hsla(0,100%,64%,0.4)]"
+                            : ""
+                          }`
+                        }`}
                     >
                       <span className="material-symbols-outlined text-white text-sm material-filled">
                         {item.status === "success" ? "check_circle" : "cancel"}

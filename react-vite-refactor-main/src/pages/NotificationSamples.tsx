@@ -17,7 +17,7 @@ const NotificationSamples = () => {
               arrow_back
             </span>
           </button>
-          
+
           <h1
             className="font-black tracking-tighter text-lg sm:text-2xl text-[#4ade80] uppercase"
             style={{ fontFamily: "'Manrope', sans-serif" }}

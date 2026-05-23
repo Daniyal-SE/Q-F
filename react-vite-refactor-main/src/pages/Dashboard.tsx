@@ -347,7 +347,7 @@ const Dashboard = () => {
                       const now = Date.now();
                       const elapsed = now - (streakData.startTime || 0);
                       const totalMs = 24 * 60 * 60 * 1000;
-                      
+
                       // Overall 24h progress: outer ring (Blue) smoothly filled
                       const hoursElapsedRaw = Math.min(elapsed / (60 * 60 * 1000), 24);
                       const hoursAngle = (hoursElapsedRaw / 24) * 360;

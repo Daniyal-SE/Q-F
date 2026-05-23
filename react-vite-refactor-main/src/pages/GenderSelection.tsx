@@ -46,19 +46,17 @@ const GenderSelection = () => {
             <button
               key={option.id}
               onClick={() => setSelected(option.id)}
-              className={`w-full relative p-6 rounded-xl border-2 transition-all duration-300 flex items-center justify-between overflow-hidden ${
-                selected === option.id
+              className={`w-full relative p-6 rounded-xl border-2 transition-all duration-300 flex items-center justify-between overflow-hidden ${selected === option.id
                   ? "bg-kinetic-surface-container border-kinetic-primary shadow-[0_0_20px_hsla(var(--kinetic-primary)/0.15)]"
                   : "bg-kinetic-surface-container-low border-transparent hover:bg-kinetic-surface-container"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-5">
                 <div
-                  className={`w-14 h-14 rounded-full flex items-center justify-center ${
-                    selected === option.id
+                  className={`w-14 h-14 rounded-full flex items-center justify-center ${selected === option.id
                       ? "bg-kinetic-primary-container text-white"
                       : "bg-kinetic-surface-container-highest text-kinetic-primary"
-                  }`}
+                    }`}
                 >
                   <span
                     className={`material-symbols-outlined text-3xl ${selected === option.id ? "material-filled" : ""}`}
@@ -76,11 +74,10 @@ const GenderSelection = () => {
                 </div>
               </div>
               <div
-                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                  selected === option.id
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selected === option.id
                     ? "border-kinetic-primary"
                     : "border-kinetic-outline-variant"
-                }`}
+                  }`}
               >
                 <div
                   className={`w-3 h-3 rounded-full transition-colors ${selected === option.id ? "bg-kinetic-primary" : "bg-transparent"}`}
@@ -99,11 +96,10 @@ const GenderSelection = () => {
               if (selected) navigate("/onboarding/stats");
             }}
             disabled={!selected}
-            className={`w-full py-5 rounded-xl font-black text-lg tracking-widest uppercase flex items-center justify-center gap-3 transition-all duration-200 ${
-              selected
+            className={`w-full py-5 rounded-xl font-black text-lg tracking-widest uppercase flex items-center justify-center gap-3 transition-all duration-200 ${selected
                 ? "bg-gradient-to-br from-kinetic-primary to-kinetic-primary-container text-kinetic-on-primary active:scale-[0.98] shadow-lg shadow-kinetic-primary/20"
                 : "bg-kinetic-surface-container-high text-kinetic-on-surface-variant cursor-not-allowed opacity-50"
-            }`}
+              }`}
           >
             Next{" "}
             <span className="material-symbols-outlined">arrow_forward</span>
