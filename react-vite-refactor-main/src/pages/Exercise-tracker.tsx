@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import BottomNav from "@/components/BottomNav";
 
 const ExerciseTracker: React.FC = () => {
   const navigate = useNavigate();
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<"running" | "walking" | "workout" | "cycling">("running");
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | undefined;
@@ -43,6 +45,51 @@ const ExerciseTracker: React.FC = () => {
     return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
+  const getCaloriesBurned = () => {
+    let factor = 0.08; // walking default
+    if (selectedActivity === "running") factor = 0.2;
+    else if (selectedActivity === "workout") factor = 0.13;
+    else if (selectedActivity === "cycling") factor = 0.11;
+    return Math.round(seconds * factor);
+  };
+
+  const handleSaveActivity = () => {
+    if (seconds < 5) {
+      alert("Activity duration is too short to save! Try exercising a bit longer.");
+      return;
+    }
+
+    const saved = localStorage.getItem("exerciseEntries");
+    const entries = saved ? JSON.parse(saved) : [];
+    
+    const newEntry = {
+      id: Date.now().toString(),
+      activity: selectedActivity,
+      duration: seconds,
+      calories: getCaloriesBurned(),
+      date: new Date().toISOString(),
+    };
+
+    entries.push(newEntry);
+    localStorage.setItem("exerciseEntries", JSON.stringify(entries));
+
+    // Also add to dailyRecords for historical tracking
+    const todayStr = new Date().toISOString().split("T")[0];
+    const savedRecords = localStorage.getItem("dailyRecords");
+    const records = savedRecords ? JSON.parse(savedRecords) : [];
+    
+    records.push({
+      date: todayStr,
+      completed: true,
+      precision: selectedActivity,
+      duration: Math.round(seconds / 60), // minutes
+    });
+    localStorage.setItem("dailyRecords", JSON.stringify(records));
+
+    alert(`Activity "${selectedActivity.toUpperCase()}" saved successfully! 💪`);
+    navigate("/dashboard");
+  };
+
   return (
     <div
       className="bg-[#0c1321] text-[#dce2f6] min-h-screen pb-24 sm:pb-32"
@@ -79,63 +126,39 @@ const ExerciseTracker: React.FC = () => {
           </p>
         </section>
 
-        {/* Activity Grid (Asymmetric Bento Style) */}
-        <section className="grid grid-cols-4 gap-3">
-          <div className="col-span-2 bg-[#4ade80] text-[#005e2d] p-4 sm:p-5 rounded-xl flex flex-col justify-between aspect-square active:scale-95 transition-all cursor-pointer">
-            <span
-              className="material-symbols-outlined text-3xl sm:text-4xl"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              directions_run
-            </span>
-            <span
-              className="font-bold text-lg uppercase tracking-wider"
-              style={{ fontFamily: "'Manrope', sans-serif" }}
-            >
-              Running
-            </span>
-          </div>
-          <div className="col-span-2 space-y-3">
-            <div className="bg-[#232a39] p-4 rounded-xl flex items-center gap-4 hover:bg-[#2e3544] transition-colors cursor-pointer group">
-              <div className="w-10 h-10 rounded-full bg-[#2e3544] flex items-center justify-center group-hover:bg-[#4ade80] group-hover:text-[#005e2d] transition-colors">
-                <span className="material-symbols-outlined text-xl">
-                  directions_walk
-                </span>
-              </div>
-              <span
-                className="font-semibold"
-                style={{ fontFamily: "'Manrope', sans-serif" }}
+        {/* Activity Grid (Symmetric Grid) */}
+        <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { id: "running" as const, icon: "directions_run", label: "Running" },
+            { id: "walking" as const, icon: "directions_walk", label: "Walking" },
+            { id: "workout" as const, icon: "fitness_center", label: "Workout" },
+            { id: "cycling" as const, icon: "directions_bike", label: "Cycling" },
+          ].map((act) => {
+            const isSelected = selectedActivity === act.id;
+            return (
+              <button
+                key={act.id}
+                onClick={() => setSelectedActivity(act.id)}
+                className={`p-4 sm:p-5 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-3 aspect-square active:scale-95 duration-200 ${
+                  isSelected
+                    ? "bg-[#4ade80]/15 border-[#4ade80] text-[#4ade80] shadow-[0_0_20px_rgba(74,222,128,0.2)]"
+                    : "bg-[#151b2a] border-transparent text-[#94a3b8] hover:border-[#2e3544] hover:text-[#dce2f6]"
+                }`}
               >
-                Walking
-              </span>
-            </div>
-            <div className="bg-[#232a39] p-4 rounded-xl flex items-center gap-4 hover:bg-[#2e3544] transition-colors cursor-pointer group border-l-4 border-[#6bfb9a]">
-              <div className="w-10 h-10 rounded-full bg-[#4ade80] text-[#005e2d] flex items-center justify-center">
-                <span className="material-symbols-outlined text-xl">
-                  fitness_center
+                <span
+                  className={`material-symbols-outlined text-3xl sm:text-4xl transition-transform ${isSelected ? "scale-110 material-filled" : "scale-100"}`}
+                >
+                  {act.icon}
                 </span>
-              </div>
-              <span
-                className="font-semibold text-[#6bfb9a]"
-                style={{ fontFamily: "'Manrope', sans-serif" }}
-              >
-                Workout
-              </span>
-            </div>
-            <div className="bg-[#232a39] p-4 rounded-xl flex items-center gap-4 hover:bg-[#2e3544] transition-colors cursor-pointer group">
-              <div className="w-10 h-10 rounded-full bg-[#2e3544] flex items-center justify-center group-hover:bg-[#4ade80] group-hover:text-[#005e2d] transition-colors">
-                <span className="material-symbols-outlined text-xl">
-                  directions_bike
+                <span
+                  className="font-bold text-sm sm:text-base uppercase tracking-wider block"
+                  style={{ fontFamily: "'Manrope', sans-serif" }}
+                >
+                  {act.label}
                 </span>
-              </div>
-              <span
-                className="font-semibold"
-                style={{ fontFamily: "'Manrope', sans-serif" }}
-              >
-                Cycling
-              </span>
-            </div>
-          </div>
+              </button>
+            );
+          })}
         </section>
 
         {/* Center: Kinetic Timer */}
@@ -200,7 +223,7 @@ const ExerciseTracker: React.FC = () => {
                 className="text-2xl font-bold text-[#6bfb9a]"
                 style={{ fontFamily: "'Manrope', sans-serif" }}
               >
-                -180 kcal
+                -{getCaloriesBurned()} kcal
               </span>
             </div>
           </div>
@@ -209,6 +232,7 @@ const ExerciseTracker: React.FC = () => {
         {/* Action Button */}
         <section className="pt-4">
           <button
+            onClick={handleSaveActivity}
             className="w-full py-4 sm:py-5 rounded-xl bg-gradient-to-br from-[#6bfb9a] to-[#4ade80] text-[#003919] font-extrabold text-base sm:text-lg uppercase tracking-widest shadow-[0_16px_32px_rgba(74,222,128,0.15)] active:scale-[0.98] transition-all"
             style={{ fontFamily: "'Manrope', sans-serif" }}
           >
@@ -218,47 +242,7 @@ const ExerciseTracker: React.FC = () => {
       </main>
 
       {/* BottomNavBar */}
-      <nav
-        className="fixed bottom-0 left-0 w-full flex justify-around items-center px-2 sm:px-6 pb-3 sm:pb-8 pt-2 sm:pt-4 bg-[#151b2a]/80 backdrop-blur-xl z-50 rounded-t-[20px] sm:rounded-t-[1.5rem] shadow-[0_-16px_32px_rgba(74,222,128,0.06)]"
-        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
-      >
-        <div
-          onClick={() => navigate("/dashboard")}
-          className="flex flex-col items-center justify-center text-slate-500 py-2 hover:text-[#4ADE80] transition-colors cursor-pointer"
-        >
-          <span className="material-symbols-outlined">timer</span>
-          <span className="font-medium text-[10px] uppercase tracking-widest mt-1">
-            Focus
-          </span>
-        </div>
-        <div
-          onClick={() => navigate("/food-analysis")}
-          className="flex flex-col items-center justify-center text-slate-500 py-2 hover:text-[#4ADE80] transition-colors cursor-pointer"
-        >
-          <span className="material-symbols-outlined">install_mobile</span>
-          <span className="font-medium text-[10px] uppercase tracking-widest mt-1">
-            Scan
-          </span>
-        </div>
-        <div
-          onClick={() => navigate("/exercise-tracker")}
-          className="flex flex-col items-center justify-center bg-gradient-to-br from-[#6bfb9a] to-[#4ade80] text-[#0c1321] rounded-[1.5rem] px-5 py-2 active:scale-90 transition-all duration-300 ease-out cursor-pointer"
-        >
-          <span className="material-symbols-outlined">fitness_center</span>
-          <span className="font-medium text-[10px] uppercase tracking-widest mt-1">
-            Train
-          </span>
-        </div>
-        <div
-          onClick={() => navigate("/calorie-detail-breakdown")}
-          className="flex flex-col items-center justify-center text-slate-500 py-2 hover:text-[#4ADE80] transition-colors cursor-pointer"
-        >
-          <span className="material-symbols-outlined">analytics</span>
-          <span className="font-medium text-[10px] uppercase tracking-widest mt-1">
-            Stats
-          </span>
-        </div>
-      </nav>
+      <BottomNav active="exercise" />
     </div>
   );
 };

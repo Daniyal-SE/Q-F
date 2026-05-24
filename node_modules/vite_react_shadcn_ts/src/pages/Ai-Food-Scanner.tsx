@@ -1,16 +1,36 @@
 import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCameraGallery, type CapturedMedia } from "@/hooks/useCameraGallery";
+import BottomNav from "@/components/BottomNav";
 
 const AiFoodScanner: React.FC = () => {
   const navigate = useNavigate();
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isStartingCamera, setIsStartingCamera] = useState(false);
 
+  const getAuthRole = () => {
+    const saved = localStorage.getItem("userAuth");
+    if (saved) {
+      const auth = JSON.parse(saved);
+      return auth.role; // 'user' or 'guest'
+    }
+    return "guest";
+  };
+
   const handleCapture = useCallback((media: CapturedMedia) => {
-    setCapturedImage(media.dataUrl);
-  }, []);
+    const role = getAuthRole();
+    if (role === "guest" && capturedImages.length >= 1) {
+      setShowAuthModal(true);
+      return;
+    }
+    if (capturedImages.length >= 3) {
+      alert("You have already captured the maximum limit of 3 photos!");
+      return;
+    }
+    setCapturedImages((prev) => [...prev, media.dataUrl]);
+  }, [capturedImages]);
 
   const handleError = useCallback((err: Error) => {
     if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
@@ -47,15 +67,39 @@ const AiFoodScanner: React.FC = () => {
     if (isStartingCamera) return;
     setCameraError(null);
 
+    const role = getAuthRole();
     if (isStreaming) {
+      if (role === "guest" && capturedImages.length >= 1) {
+        setShowAuthModal(true);
+        stopCamera();
+        return;
+      }
+      if (capturedImages.length >= 3) {
+        alert("Maximum limit of 3 photos reached!");
+        stopCamera();
+        return;
+      }
+
       // Camera is active → capture photo
       const media = capturePhoto();
       if (!media) {
         setCameraError("Capture failed. Is the camera running?");
         return;
       }
-      stopCamera();
+
+      const nextCount = capturedImages.length + 1;
+      if ((role === "guest" && nextCount >= 1) || nextCount >= 3) {
+        stopCamera();
+      }
     } else {
+      if (role === "guest" && capturedImages.length >= 1) {
+        setShowAuthModal(true);
+        return;
+      }
+      if (capturedImages.length >= 3) {
+        alert("Maximum limit of 3 photos reached! Remove photos to scan more.");
+        return;
+      }
       // Start camera
       setIsStartingCamera(true);
       await startCamera();
@@ -122,10 +166,10 @@ const AiFoodScanner: React.FC = () => {
             <div className="w-full aspect-square md:aspect-video bg-[#151b2a] rounded-xl flex flex-col items-center justify-center relative overflow-hidden shadow-[0_0_30px_rgba(74,222,128,0.15)]">
 
               {/* Captured photo overlay */}
-              {capturedImage && (
+              {capturedImages.length > 0 && (
                 <img
-                  className="absolute inset-0 w-full h-full object-cover z-0"
-                  src={capturedImage}
+                  className="absolute inset-0 w-full h-full object-cover z-0 animate-in fade-in duration-300"
+                  src={capturedImages[capturedImages.length - 1]}
                   alt="Scanned Food"
                 />
               )}
@@ -138,14 +182,14 @@ const AiFoodScanner: React.FC = () => {
                 muted
                 controls={false}
                 className="absolute inset-0 w-full h-full object-cover z-0"
-                style={{ display: isStreaming && !capturedImage ? "block" : "none" }}
+                style={{ display: isStreaming && capturedImages.length === 0 ? "block" : "none" }}
               />
 
               {/* Hidden canvas for snapshot */}
               <canvas ref={canvasRef} className="hidden" />
 
               {/* Placeholder background image (shown when idle) */}
-              {!capturedImage && !isStreaming && (
+              {capturedImages.length === 0 && !isStreaming && (
                 <img
                   className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity z-0"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_-xEzyFOY1TCD_56mMJu3QZp9clLCg_ZD9A0y0PujHMTNx0dsNwFrR1JTIB0k877ZYhhKuntIB_rmKfPnIq-z-wPici05KfkQHDiMuXz1l4rccv3W1VBMo8ZzdszFrYv61uR-ERsTmOoPIoNViM0gmTJNATGECs1Wvf4uaXjh7IeO0WqZlWOUKdXP6qWQIeTH74c4djypyzKwVFydoculqyvDPHzMT1bWuStNONSrajapXORUF8YDvQlHnO386NWpgTWI-VcPE_AF"
@@ -154,21 +198,27 @@ const AiFoodScanner: React.FC = () => {
               )}
 
               {/* Scan line */}
-              {!capturedImage && (
+              {capturedImages.length === 0 && (
                 <div
                   className="absolute top-1/2 w-full h-[2px] z-10"
                   style={{ background: "linear-gradient(90deg, transparent, #6bfb9a, transparent)" }}
                 />
               )}
 
-              {/* Controls overlay */}
-              <div className="relative z-10 flex flex-col items-center gap-4 bg-black/30 p-4 rounded-3xl backdrop-blur-sm">
+              {/* Shutter button positioned down (Task 3) */}
+              <div 
+                className={`${
+                  isStreaming 
+                    ? "absolute bottom-4 left-1/2 -translate-x-1/2 w-fit bg-black/60 px-5 py-2 rounded-full border border-white/10" 
+                    : "relative"
+                } z-10 flex flex-col items-center gap-2 backdrop-blur-sm transition-all`}
+              >
                 <div className="flex gap-6 items-center">
 
                   {/* Camera / Capture / Stop button */}
                   <div
                     onClick={(e) => { e.stopPropagation(); handleCameraButton(); }}
-                    className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-[#6bfb9a]/20 active:scale-90 transition-all cursor-pointer select-none ${isStartingCamera
+                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-[#6bfb9a]/20 active:scale-90 transition-all cursor-pointer select-none ${isStartingCamera
                         ? "bg-[#6bfb9a]/60 text-[#003919]"
                         : isStreaming
                           ? "bg-white text-[#003919]"
@@ -176,10 +226,10 @@ const AiFoodScanner: React.FC = () => {
                       }`}
                   >
                     <span
-                      className="material-symbols-outlined text-3xl"
+                      className="material-symbols-outlined text-2xl"
                       style={{ fontVariationSettings: "'FILL' 1" }}
                     >
-                      {isStartingCamera ? "hourglass_top" : "photo_camera"}
+                      {isStartingCamera ? "hourglass_top" : isStreaming ? "lens" : "photo_camera"}
                     </span>
                   </div>
 
@@ -194,44 +244,99 @@ const AiFoodScanner: React.FC = () => {
                   )}
 
                   {/* Gallery picker */}
-                  <label
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-16 h-16 rounded-full flex items-center justify-center text-[#4de082] active:scale-90 transition-transform bg-[#2e3544]/80 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-3xl">gallery_thumbnail</span>
-                    {/* Hidden file input driven by the hook's fileInputRef */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
+                  {!isStreaming && (
+                    <label
                       onClick={(e) => e.stopPropagation()}
-                    />
-                  </label>
+                      className="w-14 h-14 rounded-full flex items-center justify-center text-[#4de082] active:scale-90 transition-transform bg-[#2e3544]/80 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-2xl">gallery_thumbnail</span>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </label>
+                  )}
                 </div>
 
                 {/* Status text */}
-                {!capturedImage && (
-                  <p className="font-medium uppercase tracking-widest text-xs text-[#6dfe9c]">
+                {capturedImages.length === 0 && (
+                  <p className="font-semibold uppercase tracking-widest text-[9px] text-[#6dfe9c] text-center">
                     {isStartingCamera
                       ? "Opening camera…"
                       : isStreaming
-                        ? "Tap camera to capture"
+                        ? "Tap shutter to capture"
                         : "Tap camera to scan"}
                   </p>
                 )}
 
                 {/* Retake button */}
-                {capturedImage && (
+                {capturedImages.length > 0 && !isStreaming && (
                   <button
-                    onClick={(e) => { e.stopPropagation(); setCapturedImage(null); }}
-                    className="font-bold uppercase tracking-widest text-xs text-white"
+                    onClick={(e) => { e.stopPropagation(); setCapturedImages([]); }}
+                    className="font-bold uppercase tracking-widest text-[10px] text-white"
                   >
-                    Retake Photo
+                    Retake All
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* 3 Picture Slots Area (Task 2) */}
+          <div className="bg-[#121A2B] p-4 rounded-xl border border-white/5 space-y-3">
+            <p className="text-[10px] font-black tracking-widest text-[#bccabb] uppercase">
+              Captured Meal Slots (Up to 3 images)
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              {[0, 1, 2].map((index) => {
+                const img = capturedImages[index];
+                const isLocked = index >= 1 && getAuthRole() === "guest";
+                return (
+                  <div
+                    key={index}
+                    onClick={() => {
+                      if (img) {
+                        if (confirm("Remove this photo from analysis?")) {
+                          setCapturedImages((prev) => prev.filter((_, i) => i !== index));
+                        }
+                      } else if (isLocked) {
+                        setShowAuthModal(true);
+                      } else {
+                        alert("Tap the shutter button or open gallery above to add photo!");
+                      }
+                    }}
+                    className={`aspect-square rounded-xl bg-[#151b2a] border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 select-none cursor-pointer ${
+                      img 
+                        ? "border-[#4ade80] scale-105" 
+                        : isLocked 
+                          ? "border-red-900/30 text-red-400 bg-red-950/10" 
+                          : "border-dashed border-slate-700 text-slate-500 hover:border-slate-600"
+                    }`}
+                  >
+                    {img ? (
+                      <>
+                        <img src={img} alt={`Slot ${index + 1}`} className="w-full h-full object-cover" />
+                        <div className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[8px] font-bold shadow-md">
+                          ✕
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center flex flex-col items-center gap-1 p-2">
+                        <span className="material-symbols-outlined text-xl">
+                          {isLocked ? "lock" : "add_a_photo"}
+                        </span>
+                        <span className="text-[8px] font-black tracking-wider uppercase block">
+                          {isLocked ? "Locked" : `Slot ${index + 1}`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -293,31 +398,82 @@ const AiFoodScanner: React.FC = () => {
             </div>
           </div>
 
-          <button className="w-full py-5 rounded-xl bg-gradient-to-br from-[#6bfb9a] to-[#4ade80] text-[#003919] font-extrabold text-lg uppercase tracking-widest shadow-lg shadow-[#6bfb9a]/20 hover:scale-[1.02] active:scale-95 transition-all mt-4">
+          <button 
+            onClick={() => {
+              if (capturedImages.length === 0) {
+                alert("Please scan or upload a meal photo first!");
+                return;
+              }
+              const saved = localStorage.getItem("foodEntries");
+              const entries = saved ? JSON.parse(saved) : [];
+              entries.push({
+                id: Date.now().toString(),
+                name: "Healthy Scanned Meal",
+                calories: 320,
+                carbs: 24,
+                protein: 12,
+                fat: 18,
+                date: new Date().toISOString(),
+                images: capturedImages,
+              });
+              localStorage.setItem("foodEntries", JSON.stringify(entries));
+
+              const todayStr = new Date().toISOString().split("T")[0];
+              const savedRecords = localStorage.getItem("dailyRecords");
+              const records = savedRecords ? JSON.parse(savedRecords) : [];
+              records.push({
+                date: todayStr,
+                completed: true,
+                precision: "sugar",
+                duration: 24,
+              });
+              localStorage.setItem("dailyRecords", JSON.stringify(records));
+
+              alert("Meal logged successfully! 🥑");
+              navigate("/dashboard");
+            }}
+            className="w-full py-5 rounded-xl bg-gradient-to-br from-[#6bfb9a] to-[#4ade80] text-[#003919] font-extrabold text-lg uppercase tracking-widest shadow-lg shadow-[#6bfb9a]/20 hover:scale-[1.02] active:scale-95 transition-all mt-4"
+          >
             Add to Today
           </button>
         </div>
       </main>
 
+      {/* Guest Lock Auth Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/85 z-[100] flex items-end sm:items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#121A2B] w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 sm:p-8 space-y-6 animate-in slide-in-from-bottom-5 border border-white/10 shadow-2xl">
+            <div className="text-center space-y-3">
+              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto text-red-400">
+                <span className="material-symbols-outlined text-4xl">lock</span>
+              </div>
+              <h3 className="text-2xl font-black tracking-tight text-white uppercase" style={{ fontFamily: "'Manrope', sans-serif" }}>
+                Unlock Multi-Photo Scanning
+              </h3>
+              <p className="text-[#bccabb] text-sm leading-relaxed">
+                Guest accounts are limited to **exactly 1 photo scan** per meal. Register or Sign In to capture up to 3 photos for full nutritional breakdown analysis!
+              </p>
+            </div>
+            <div className="space-y-3 pt-2">
+              <button
+                onClick={() => { setShowAuthModal(false); navigate("/auth"); }}
+                className="w-full py-4 rounded-xl bg-gradient-to-br from-[#6bfb9a] to-[#4ade80] text-[#003919] font-black text-base uppercase tracking-wider shadow-lg active:scale-95 transition-all"
+              >
+                Create Account / Sign In
+              </button>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="w-full py-3 rounded-xl bg-[#2e3544]/50 text-slate-300 font-bold text-sm uppercase hover:bg-[#2e3544]/75 transition-all"
+              >
+                Continue as Guest
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Bottom Nav ── */}
-      <nav className="fixed bottom-0 left-0 w-full flex justify-around items-center px-6 pb-8 pt-4 bg-[#151b2a]/80 backdrop-blur-xl z-50 rounded-t-[1.5rem] shadow-[0_-16px_32px_rgba(74,222,128,0.06)]">
-        <div onClick={() => navigate("/dashboard")} className="flex flex-col items-center justify-center text-slate-500 py-2 hover:text-[#4ADE80] transition-colors active:scale-90 duration-300 ease-out cursor-pointer">
-          <span className="material-symbols-outlined">timer</span>
-          <span className="font-medium text-[10px] uppercase tracking-widest mt-1">Focus</span>
-        </div>
-        <div onClick={() => navigate("/ai-food-scanner")} className="flex flex-col items-center justify-center bg-gradient-to-br from-[#6bfb9a] to-[#4ade80] text-[#0c1321] rounded-[1.5rem] px-5 py-2 active:scale-90 duration-300 ease-out cursor-pointer">
-          <span className="material-symbols-outlined">install_mobile</span>
-          <span className="font-medium text-[10px] uppercase tracking-widest mt-1">Scan</span>
-        </div>
-        <div onClick={() => navigate("/exercise-tracker")} className="flex flex-col items-center justify-center text-slate-500 py-2 hover:text-[#4ADE80] transition-colors active:scale-90 duration-300 ease-out cursor-pointer">
-          <span className="material-symbols-outlined">fitness_center</span>
-          <span className="font-medium text-[10px] uppercase tracking-widest mt-1">Train</span>
-        </div>
-        <div onClick={() => navigate("/calorie-detail-breakdown")} className="flex flex-col items-center justify-center text-slate-500 py-2 hover:text-[#4ADE80] transition-colors active:scale-90 duration-300 ease-out cursor-pointer">
-          <span className="material-symbols-outlined">analytics</span>
-          <span className="font-medium text-[10px] uppercase tracking-widest mt-1">Stats</span>
-        </div>
-      </nav>
+      <BottomNav active="scan" />
     </div>
   );
 };

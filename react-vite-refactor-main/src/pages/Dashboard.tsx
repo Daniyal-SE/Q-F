@@ -37,6 +37,37 @@ const Dashboard = () => {
   const [timerKey, setTimerKey] = useState(0); // Force re-render for timer updates
   const [isPrecisionExpanded, setIsPrecisionExpanded] = useState(false);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [motivators] = useState<{ id: string; text: string; emoji: string }[]>(() => {
+    const saved = localStorage.getItem("motivators");
+    return saved ? JSON.parse(saved) : [
+      { id: "1", text: "My Family", emoji: "👨‍👩‍👧" },
+      { id: "2", text: "Feel Energetic", emoji: "⚡" },
+      { id: "3", text: "Save Money", emoji: "💰" },
+    ];
+  });
+
+  const [totalIntake, setTotalIntake] = useState(0);
+  const [totalBurned, setTotalBurned] = useState(0);
+
+  // Load today's stats on mount / timer tick
+  useEffect(() => {
+    const rawFood = localStorage.getItem("foodEntries");
+    const allFood = rawFood ? JSON.parse(rawFood) : [];
+    const todayStr = new Date().toISOString().split("T")[0];
+    const todayFood = allFood.filter((e: any) =>
+      e.date ? e.date.startsWith(todayStr) : true
+    );
+    const sumIntake = todayFood.reduce((s: number, e: any) => s + (e.calories || 0), 0);
+    setTotalIntake(sumIntake);
+
+    const rawEx = localStorage.getItem("exerciseEntries");
+    const allEx = rawEx ? JSON.parse(rawEx) : [];
+    const todayEx = allEx.filter((e: any) =>
+      e.date ? e.date.startsWith(todayStr) : true
+    );
+    const sumBurned = todayEx.reduce((s: number, e: any) => s + (e.calories || 0), 0);
+    setTotalBurned(sumBurned);
+  }, [timerKey]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartY(e.touches[0].clientY);
@@ -52,6 +83,14 @@ const Dashboard = () => {
     setTouchStartY(null);
   };
 
+  // Redirect to auth options page if not authenticated
+  useEffect(() => {
+    const auth = localStorage.getItem("userAuth");
+    if (!auth) {
+      navigate("/auth");
+    }
+  }, [navigate]);
+
   // Calculate remaining time and daily discipline based on current time
   const getTimerValues = () => {
     if (!streakData.startTime) {
@@ -59,6 +98,7 @@ const Dashboard = () => {
         remainingTime: "24:00:00",
         dailyDiscipline: 0,
         secondsElapsed: 0,
+        daysPassed: 0,
       };
     }
 
@@ -66,29 +106,27 @@ const Dashboard = () => {
     const elapsed = now - streakData.startTime;
     const totalDuration = 24 * 60 * 60 * 1000; // 24 hours
 
-    if (elapsed >= totalDuration) {
-      return {
-        remainingTime: "00:00:00",
-        dailyDiscipline: 100,
-        secondsElapsed: 60,
-      };
-    }
+    const daysPassed = Math.floor(elapsed / totalDuration);
+    const currentDayElapsed = elapsed % totalDuration;
+    const remaining = totalDuration - currentDayElapsed;
 
-    const remaining = totalDuration - elapsed;
     const hours = Math.floor(remaining / (60 * 60 * 1000));
     const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
     const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
-    const percentage = (elapsed / totalDuration) * 100;
-    const secondsInCycle = Math.floor((elapsed % 60000) / 1000); // 0-60 seconds for outer ring
+    const percentage = (currentDayElapsed / totalDuration) * 100;
+    const secondsInCycle = Math.floor((currentDayElapsed % 60000) / 1000);
 
     return {
       remainingTime: `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`,
       dailyDiscipline: Math.min(Math.round(percentage), 100),
       secondsElapsed: secondsInCycle,
+      daysPassed,
     };
   };
 
-  const { remainingTime, dailyDiscipline } = getTimerValues();
+  const { remainingTime, dailyDiscipline, daysPassed } = getTimerValues();
+  const netBalance = totalIntake - totalBurned;
+  const intakePercentage = Math.min(Math.round((totalIntake / 2000) * 100), 100);
 
   // Save to localStorage whenever streakData changes
   useEffect(() => {
@@ -106,75 +144,49 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [streakData.startTime]);
 
-  // Handle timer completion and notifications
+  // Handle streak calculations, records writing, and updating totalDays without shifting startTime
   useEffect(() => {
     if (!streakData.startTime) return;
 
     const now = Date.now();
     const elapsed = now - streakData.startTime;
     const totalDuration = 24 * 60 * 60 * 1000;
+    const daysPassedComputed = Math.floor(elapsed / totalDuration);
 
-    // Timer completed
-    if (elapsed >= totalDuration) {
-      if (!streakData.notificationSent) {
-        showNotification(
-          "24-Hour Challenge Complete! 🎉",
-          "You've completed a full day of discipline!",
-        );
-      }
-
-      // Save completed session to history
-      const currentDate = new Date();
-      const dateStr = currentDate.toISOString().split("T")[0];
+    // Save completed sessions to history
+    if (daysPassedComputed > 0) {
       const savedRecords = localStorage.getItem("dailyRecords");
       const records = savedRecords ? JSON.parse(savedRecords) : [];
+      let updated = false;
 
-      const existingIndex = records.findIndex((r: { date: string }) => r.date === dateStr);
-      if (existingIndex >= 0) {
-        records[existingIndex].completed = true;
-        records[existingIndex].duration = 24;
-      } else {
-        records.push({
-          date: dateStr,
-          completed: true,
-          precision: streakData.precision,
-          duration: 24,
-        });
+      for (let i = 0; i < daysPassedComputed; i++) {
+        // Calculate the actual calendar date for each completed day of the streak
+        const dayTime = streakData.startTime + (i * totalDuration);
+        const dateStr = new Date(dayTime).toISOString().split("T")[0];
+        const exists = records.some((r: any) => r.date === dateStr);
+        if (!exists) {
+          records.push({
+            date: dateStr,
+            completed: true,
+            precision: streakData.precision || "custom",
+            duration: 24,
+          });
+          updated = true;
+        }
       }
-      localStorage.setItem("dailyRecords", JSON.stringify(records));
 
-      const daysPassed = Math.floor(elapsed / totalDuration);
-      const newStartTime = streakData.startTime + (daysPassed * totalDuration);
+      if (updated) {
+        localStorage.setItem("dailyRecords", JSON.stringify(records));
+      }
+    }
 
+    if (daysPassedComputed !== streakData.totalDays) {
       setStreakData((prev) => ({
         ...prev,
-        totalDays: prev.totalDays + daysPassed,
-        startTime: newStartTime,
-        notificationSent: false,
-        preNotificationSent: false,
+        totalDays: daysPassedComputed,
       }));
     }
-    // Pre-completion notification (after 20 hours)
-    else if (
-      !streakData.preNotificationSent &&
-      elapsed >= 20 * 60 * 60 * 1000
-    ) {
-      showNotification(
-        "Almost There! 💪",
-        "You're 2-3 hours away from completing your 24-hour streak!",
-      );
-      setStreakData((prev) => ({
-        ...prev,
-        preNotificationSent: true,
-      }));
-    }
-  }, [
-    streakData.startTime,
-    streakData.notificationSent,
-    streakData.preNotificationSent,
-    streakData.precision,
-    timerKey,
-  ]);
+  }, [streakData.startTime, streakData.totalDays, streakData.precision]);
 
   const showNotification = (title: string, message: string) => {
     if ("Notification" in window && Notification.permission === "granted") {
@@ -254,65 +266,109 @@ const Dashboard = () => {
       </header>
 
       <main className="px-4 sm:px-6 pt-4 sm:pt-8 max-w-2xl mx-auto space-y-5 sm:space-y-8">
-        {/* Greeting */}
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-xl sm:text-2xl md:text-4xl font-black tracking-tight text-kinetic-on-surface">
-              STAY STRONG
-            </h2>
-            <span className="text-kinetic-primary text-sm sm:text-base font-bold tracking-wider">
-              DAY {Math.max(1, streakData.startTime ? streakData.totalDays + 1 : streakData.totalDays)}
+        {/* 7-Day Liquid Circular Tracker — replaces STAY STRONG */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[10px] font-black tracking-[0.25em] text-[#94a3b8] uppercase">Weekly Discipline</h2>
+            <span className="text-[#4ade80] text-[10px] font-black uppercase tracking-widest">
+              Day {Math.max(1, streakData.startTime ? streakData.totalDays + 1 : streakData.totalDays)} Active
             </span>
           </div>
+          <div className="flex gap-2 sm:gap-3 justify-between">
+            {Array.from({ length: 7 }, (_, i) => {
+              const dayNum = i + 1;
+              const isCompleted = dayNum <= streakData.totalDays;
+              const isActive = dayNum === Math.max(1, streakData.startTime ? streakData.totalDays + 1 : streakData.totalDays) && !!streakData.startTime;
+              const fillPct = isActive ? dailyDiscipline : isCompleted ? 100 : 0;
+              const waveOffset = (Date.now() / 1000) * 30; // animated wave offset
+              const circleR = 28;
+              const cx = 32; const cy = 32;
+              // Water level y (top=4, bottom=60): fillPct 0→100 maps bottom to top
+              const waterY = cy + circleR - (fillPct / 100) * (circleR * 2);
+              // Clip water to circle
+              const clipId = `wave-clip-${i}`;
+              return (
+                <div key={i} className="flex flex-col items-center gap-1.5 flex-1">
+                  <svg width="100%" viewBox="0 0 64 64" className="overflow-visible">
+                    <defs>
+                      <clipPath id={clipId}>
+                        <circle cx={cx} cy={cy} r={circleR - 1} />
+                      </clipPath>
+                    </defs>
+                    {/* Background circle */}
+                    <circle cx={cx} cy={cy} r={circleR} fill="#1e293b" />
+                    {/* Liquid water fill */}
+                    {fillPct > 0 && (
+                      <g clipPath={`url(#${clipId})`}>
+                        <rect
+                          x={0} y={waterY} width={64} height={64}
+                          fill={isCompleted && !isActive ? "#22c55e" : isActive ? "#4ade80" : "#334155"}
+                          opacity="0.85"
+                        />
+                        {/* Wave ripple on top of water */}
+                        {isActive && fillPct < 100 && (
+                          <path
+                            d={`M0,${waterY} Q8,${waterY - 4} 16,${waterY} Q24,${waterY + 4} 32,${waterY} Q40,${waterY - 4} 48,${waterY} Q56,${waterY + 4} 64,${waterY} L64,64 L0,64 Z`}
+                            fill="#4ade80"
+                            opacity="0.9"
+                          >
+                            <animateTransform attributeName="transform" type="translate" from="-32 0" to="0 0" dur="2s" repeatCount="indefinite" />
+                          </path>
+                        )}
+                      </g>
+                    )}
+                    {/* Border ring */}
+                    <circle
+                      cx={cx} cy={cy} r={circleR - 1}
+                      fill="none"
+                      stroke={isActive ? "#4ade80" : isCompleted ? "#22c55e" : "#334155"}
+                      strokeWidth={isActive ? 2.5 : 1.5}
+                      opacity={isActive ? 1 : 0.6}
+                    />
+                    {/* Day number or check */}
+                    <text
+                      x={cx} y={cy}
+                      textAnchor="middle" dominantBaseline="central"
+                      fontSize={isCompleted && !isActive ? "14" : "13"}
+                      fontWeight="700"
+                      fill={isCompleted ? "#fff" : isActive ? (fillPct > 50 ? "#0f2a15" : "#dce2f6") : "#475569"}
+                      fontFamily="Inter, sans-serif"
+                    >
+                      {isCompleted && !isActive ? "✓" : dayNum}
+                    </text>
+                  </svg>
+                  <span className={`text-[8px] font-black uppercase tracking-wider ${
+                    isActive ? "text-[#4ade80]" : isCompleted ? "text-[#22c55e]" : "text-[#475569]"
+                  }`}>D{dayNum}</span>
+                </div>
+              );
+            })}
+          </div>
+          {/* Precision Focus card */}
           <div
-            className="bg-kinetic-surface-container-low p-4 sm:p-6 rounded-xl hover:bg-kinetic-surface-container transition-colors relative"
+            className="bg-[#121a2b] p-3 sm:p-4 rounded-xl hover:bg-[#1a2540] transition-colors relative border border-white/5"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-kinetic-on-surface-variant text-xs sm:text-sm font-medium uppercase tracking-widest mb-1">
-                  Precision Focus
-                </p>
-                <p className="text-lg sm:text-2xl md:text-3xl font-black text-kinetic-on-surface">
-                  {getPrecisionLabel()}
-                </p>
+                <p className="text-[#94a3b8] text-[10px] font-bold uppercase tracking-widest mb-0.5">Precision Focus</p>
+                <p className="text-base sm:text-xl font-black text-[#dce2f6]">{getPrecisionLabel()}</p>
               </div>
-              <div className="p-2 sm:p-3 bg-kinetic-primary/10 rounded-full">
-                <span className="material-symbols-outlined text-kinetic-primary text-2xl sm:text-3xl">
-                  {streakData.precision === "sugar"
-                    ? "water_drop"
-                    : streakData.precision === "junk-food"
-                      ? "no_food"
-                      : streakData.precision === "cold-drink"
-                        ? "local_drink"
-                        : "edit"}
+              <div className="p-2 bg-[#4ade80]/10 rounded-full">
+                <span className="material-symbols-outlined text-[#4ade80] text-xl">
+                  {streakData.precision === "sugar" ? "water_drop" : streakData.precision === "junk-food" ? "no_food" : streakData.precision === "cold-drink" ? "local_drink" : "edit"}
                 </span>
               </div>
             </div>
-
-            {/* Expanded Plan Options via swipe */}
             {isPrecisionExpanded && streakData.startTime && (
-              <div className="mt-6 pt-4 border-t border-kinetic-outline-variant/30 animate-in slide-in-from-top-2">
-                <p className="text-kinetic-on-surface-variant text-[10px] font-bold uppercase tracking-widest mb-3">Choose Your Plan Mode</p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {([
-                    { id: "student", label: "Student", sub: "Balanced routine goals" },
-                    { id: "work", label: "Work", sub: "Time-efficient focus" },
-                    { id: "flexible", label: "Freelancer", sub: "Higher intensity push" }
-                  ] as const).map((plan) => (
-                    <button
-                      key={plan.id}
-                      onClick={() => setStreakData((s: StreakData) => ({ ...s, plan: plan.id }))}
-                      className={`text-left p-3 rounded-lg border-2 transition-all ${streakData.plan === plan.id
-                        ? "bg-kinetic-primary/10 border-kinetic-primary"
-                        : "bg-transparent border-kinetic-outline-variant/30 hover:border-kinetic-primary/50"
-                        }`}
-                    >
-                      <p className={`font-bold text-sm ${streakData.plan === plan.id ? "text-kinetic-primary" : "text-kinetic-on-surface"}`}>
-                        {plan.label}
-                      </p>
-                      <p className="text-kinetic-on-surface-variant text-[10px] mt-1">{plan.sub}</p>
+              <div className="mt-4 pt-3 border-t border-white/5 animate-in slide-in-from-top-2">
+                <p className="text-[#94a3b8] text-[10px] font-bold uppercase tracking-widest mb-2">Choose Plan Mode</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {([{ id: "student", label: "Student", sub: "Balanced" }, { id: "work", label: "Work", sub: "Focused" }, { id: "flexible", label: "Flex", sub: "Intense" }] as const).map((plan) => (
+                    <button key={plan.id} onClick={() => setStreakData((s: StreakData) => ({ ...s, plan: plan.id }))} className={`p-2 rounded-lg border-2 transition-all text-left ${ streakData.plan === plan.id ? "bg-[#4ade80]/10 border-[#4ade80]" : "bg-transparent border-white/10 hover:border-[#4ade80]/40" }`}>
+                      <p className={`font-bold text-xs ${streakData.plan === plan.id ? "text-[#4ade80]" : "text-[#dce2f6]"}`}>{plan.label}</p>
+                      <p className="text-[#94a3b8] text-[9px] mt-0.5">{plan.sub}</p>
                     </button>
                   ))}
                 </div>
@@ -592,6 +648,28 @@ const Dashboard = () => {
           )}
         </div>
 
+        {/* Motivators Carousel */}
+        {motivators.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[10px] font-black tracking-[0.25em] text-[#94a3b8] uppercase">Why You're Doing This</h3>
+              <button onClick={() => navigate("/settings")} className="text-[#4ade80] text-[10px] font-bold uppercase tracking-widest hover:opacity-70 transition">Edit</button>
+            </div>
+            <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+              {motivators.map((m, i) => (
+                <div
+                  key={m.id}
+                  className="flex-shrink-0 flex flex-col items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-[#4ade80]/20 bg-[#0f1e12] min-w-[80px] hover:bg-[#162b1a] hover:border-[#4ade80]/50 transition-all duration-300"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                >
+                  <span className="text-2xl leading-none">{m.emoji}</span>
+                  <span className="text-[9px] font-bold text-[#4ade80] text-center leading-tight uppercase tracking-wide max-w-[70px] truncate">{m.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Daily Mission Section & Content from EM */}
         {streakData.startTime && (
           <>
@@ -613,13 +691,13 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#60A5FA]"></div>
                       <p className="text-[#94A3B8] text-xs font-bold uppercase tracking-wider">
-                        Burned: <span className="text-[#F1F5F9]">320 kcal</span>
+                        Burned: <span className="text-[#F1F5F9]">{totalBurned} kcal</span>
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-[#FB7185]"></div>
                       <p className="text-[#94A3B8] text-xs font-bold uppercase tracking-wider">
-                        Consumed: <span className="text-[#F1F5F9]">210 kcal</span>
+                        Consumed: <span className="text-[#F1F5F9]">{totalIntake} kcal</span>
                       </p>
                     </div>
                   </div>
@@ -628,19 +706,19 @@ const Dashboard = () => {
                       Net Balance
                     </p>
                     <p className="text-2xl font-extrabold text-[#4ADE80] tracking-tight">
-                      +110 <span className="text-xs uppercase">kcal</span>
+                      {netBalance >= 0 ? "+" : ""}{netBalance} <span className="text-xs uppercase">kcal</span>
                     </p>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[#94A3B8]">
                     <span>Calorie Goal</span>
-                    <span className="text-[#4ADE80]">85% Achieved</span>
+                    <span className="text-[#4ADE80]">{intakePercentage}% Achieved</span>
                   </div>
                   <div className="relative w-full h-2 bg-[#1E293B] rounded-full overflow-hidden">
                     <div
                       className="absolute top-0 left-0 h-full bg-[#4ADE80] rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: "85%" }}
+                      style={{ width: `${intakePercentage}%` }}
                     ></div>
                   </div>
                 </div>

@@ -23,6 +23,11 @@ import SettingsScreen from "./pages/SettingsScreen";
 import ExerciseTracker from "./pages/Exercise-tracker";
 import CalorieDetailBreakdown from "./pages/calorie_detail_breakdown";
 import AiFoodScanner from "./pages/Ai-Food-Scanner";
+import AuthOptions from "./pages/AuthOptions";
+import SignIn from "./pages/SignIn";
+import Register from "./pages/Register";
+
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -31,8 +36,12 @@ const App = () => (
     <TooltipProvider>
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<SplashScreen />} />
+          <Route path="/auth" element={<AuthOptions />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/onboarding/gender" element={<GenderSelection />} />
           <Route path="/onboarding/stats" element={<PhysicalStats />} />
           <Route path="/welcome" element={<WelcomeScreen />} />

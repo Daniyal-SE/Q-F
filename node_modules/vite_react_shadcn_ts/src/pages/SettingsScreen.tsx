@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import BottomNav from "@/components/BottomNav";
 
 const AVATAR_OPTIONS = [
   {
@@ -39,6 +40,11 @@ const SettingsScreen = () => {
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_OPTIONS[0].id);
   const [editInputValue, setEditInputValue] = useState(username);
   const [streakData, setStreakData] = useState<StreakData | null>(null);
+  const [userAuth, setUserAuth] = useState<{ role: string; name?: string } | null>(null);
+  const [motivators, setMotivators] = useState<{ id: string; text: string; emoji: string }[]>([]);
+  const [newMotivatorText, setNewMotivatorText] = useState("");
+  const [newMotivatorEmoji, setNewMotivatorEmoji] = useState("💪");
+  const EMOJI_OPTIONS = ["💪", "❤️", "👨‍👩‍👧", "⚡", "💰", "🏆", "🌟", "🔥", "🧠", "🎯"];
 
   // Load user profile and streak data
   useEffect(() => {
@@ -54,6 +60,18 @@ const SettingsScreen = () => {
     if (streakSaved) {
       setStreakData(JSON.parse(streakSaved));
     }
+
+    const authSaved = localStorage.getItem("userAuth");
+    if (authSaved) {
+      setUserAuth(JSON.parse(authSaved));
+    }
+
+    const motivatorsSaved = localStorage.getItem("motivators");
+    setMotivators(motivatorsSaved ? JSON.parse(motivatorsSaved) : [
+      { id: "1", text: "My Family", emoji: "👨‍👩‍👧" },
+      { id: "2", text: "Feel Energetic", emoji: "⚡" },
+      { id: "3", text: "Save Money", emoji: "💰" },
+    ]);
   }, []);
 
   // Save profile to localStorage
@@ -81,6 +99,28 @@ const SettingsScreen = () => {
       AVATAR_OPTIONS.find((a) => a.id === selectedAvatar)?.url ||
       AVATAR_OPTIONS[0].url
     );
+  };
+
+  const handleAddMotivator = () => {
+    if (!newMotivatorText.trim()) return;
+    const updated = [
+      ...motivators,
+      { id: Date.now().toString(), text: newMotivatorText.trim(), emoji: newMotivatorEmoji },
+    ];
+    setMotivators(updated);
+    localStorage.setItem("motivators", JSON.stringify(updated));
+    setNewMotivatorText("");
+  };
+
+  const handleRemoveMotivator = (id: string) => {
+    const updated = motivators.filter((m) => m.id !== id);
+    setMotivators(updated);
+    localStorage.setItem("motivators", JSON.stringify(updated));
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("userAuth");
+    navigate("/auth");
   };
 
   return (
@@ -192,7 +232,84 @@ const SettingsScreen = () => {
           </div>
         </section>
 
-        {/* Avatar Selection Section */}
+        {/* Guest Banner */}
+        {userAuth?.role === "guest" && (
+          <div className="mb-6 p-4 rounded-xl bg-[#ff9a3c]/10 border border-[#ff9a3c]/30 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[#ff9a3c] text-2xl">person_off</span>
+              <div>
+                <p className="text-[#ff9a3c] font-black text-sm">You're browsing as Guest</p>
+                <p className="text-[#ff9a3c]/70 text-xs mt-0.5">Sign up to save your progress permanently</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate("/auth")}
+              className="px-4 py-2 bg-[#ff9a3c] text-white rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-[#e8882a] transition flex-shrink-0"
+            >
+              Sign Up
+            </button>
+          </div>
+        )}
+
+        {/* Motivators Section */}
+        <div className="mb-8">
+          <h3 className="text-xs font-black text-kinetic-on-surface-variant tracking-[0.2em] uppercase mb-4">My Motivators</h3>
+          <div className="bg-kinetic-surface-container-low rounded-xl p-4 space-y-3 mb-4">
+            {motivators.length === 0 ? (
+              <p className="text-kinetic-on-surface-variant text-sm text-center py-3 opacity-60">No motivators yet. Add one below!</p>
+            ) : (
+              motivators.map((m) => (
+                <div key={m.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-kinetic-surface-container">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">{m.emoji}</span>
+                    <span className="font-bold text-kinetic-on-surface text-sm">{m.text}</span>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveMotivator(m.id)}
+                    className="text-kinetic-on-surface-variant hover:text-red-400 transition-colors p-1"
+                  >
+                    <span className="material-symbols-outlined text-lg">close</span>
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+          {/* Add new motivator */}
+          <div className="bg-kinetic-surface-container-low rounded-xl p-4 space-y-3">
+            <p className="text-xs font-bold text-kinetic-on-surface-variant uppercase tracking-widest">Add Motivator</p>
+            <div className="flex flex-wrap gap-2">
+              {EMOJI_OPTIONS.map((e) => (
+                <button
+                  key={e}
+                  onClick={() => setNewMotivatorEmoji(e)}
+                  className={`text-xl w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
+                    newMotivatorEmoji === e
+                      ? "bg-kinetic-primary/20 ring-2 ring-kinetic-primary scale-110"
+                      : "bg-kinetic-surface-container hover:bg-kinetic-surface-container-high"
+                  }`}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newMotivatorText}
+                onChange={(e) => setNewMotivatorText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddMotivator()}
+                placeholder="e.g., My family, Feel healthy..."
+                className="flex-1 px-4 py-2 text-sm bg-kinetic-surface-container rounded-lg text-kinetic-on-surface placeholder-kinetic-on-surface-variant/40 border border-kinetic-outline/20 focus:outline-none focus:border-kinetic-primary"
+              />
+              <button
+                onClick={handleAddMotivator}
+                className="px-4 py-2 bg-kinetic-primary text-kinetic-on-primary font-bold text-sm rounded-lg hover:opacity-90 transition active:scale-95"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
         <div className="mb-6 sm:mb-10">
           <h3 className="text-xs font-black text-kinetic-on-surface-variant tracking-[0.2em] uppercase mb-4">
             Choose Your Avatar
@@ -316,8 +433,24 @@ const SettingsScreen = () => {
           </span>
         </button>
 
+        {/* Logout / Account */}
+        <div className="mt-6 mb-4">
+          <button
+            onClick={handleLogout}
+            className="w-full group bg-kinetic-surface-container hover:bg-red-500/10 transition-all p-5 rounded-xl flex items-center justify-between"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400">
+                <span className="material-symbols-outlined">logout</span>
+              </div>
+              <span className="font-bold text-red-400 tracking-wide">Sign Out</span>
+            </div>
+            <span className="material-symbols-outlined text-red-400 group-hover:translate-x-1 transition-transform">chevron_right</span>
+          </button>
+        </div>
+
         {/* App Version */}
-        <div className="mt-12 text-center">
+        <div className="mt-8 text-center">
           <p className="text-kinetic-on-surface-variant text-[10px] font-bold tracking-[0.3em] uppercase opacity-40">
             Kinetic Precision v2.4.0
           </p>
@@ -325,49 +458,7 @@ const SettingsScreen = () => {
       </main>
 
       {/* BottomNavBar */}
-      <nav className="fixed bottom-0 left-0 w-full flex justify-around items-center px-2 sm:px-4 pb-3 sm:pb-6 pt-2 sm:pt-3 bg-kinetic-surface-container/60 backdrop-blur-xl rounded-t-[20px] sm:rounded-t-[24px] z-50 shadow-[0_0_40px_rgba(11,19,38,0.06)]" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="flex flex-col items-center justify-center text-kinetic-on-surface-variant flex-1 px-1 sm:px-5 py-1.5 sm:py-2.5 hover:text-kinetic-on-surface transition-all"
-        >
-          <span className="material-symbols-outlined mb-0.5 text-[18px] sm:text-[24px]">speed</span>
-          <span className="font-['Inter'] font-bold text-[7px] sm:text-[10px] tracking-tight sm:tracking-wider">
-            DASHBOARD
-          </span>
-        </button>
-        <button
-          onClick={() => navigate("/analytics")}
-          className="flex flex-col items-center justify-center text-kinetic-on-surface-variant flex-1 px-1 sm:px-5 py-1.5 sm:py-2.5 hover:text-kinetic-on-surface transition-all"
-        >
-          <span className="material-symbols-outlined mb-0.5 text-[18px] sm:text-[24px]">leaderboard</span>
-          <span className="font-['Inter'] font-bold text-[7px] sm:text-[10px] tracking-tight sm:tracking-wider">
-            ANALYTICS
-          </span>
-        </button>
-        <button
-          onClick={() => navigate("/history")}
-          className="flex flex-col items-center justify-center text-kinetic-on-surface-variant flex-1 px-1 sm:px-5 py-1.5 sm:py-2.5 hover:text-kinetic-on-surface transition-all"
-        >
-          <span className="material-symbols-outlined mb-0.5 text-[18px] sm:text-[24px]">history</span>
-          <span className="font-['Inter'] font-bold text-[7px] sm:text-[10px] tracking-tight sm:tracking-wider">
-            HISTORY
-          </span>
-        </button>
-        <button
-          onClick={() => navigate("/settings")}
-          className="flex flex-col items-center justify-center bg-gradient-to-br from-kinetic-primary to-kinetic-primary-container text-kinetic-on-primary rounded-[18px] sm:rounded-[24px] flex-1 px-1 sm:px-5 py-1.5 sm:py-2.5 mx-0.5"
-        >
-          <span
-            className="material-symbols-outlined mb-1"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            settings
-          </span>
-          <span className="font-['Inter'] font-bold text-[7px] sm:text-[10px] tracking-tight sm:tracking-wider">
-            SETTINGS
-          </span>
-        </button>
-      </nav>
+      <BottomNav active="settings" />
     </div>
   );
 };

@@ -10,6 +10,12 @@ interface CravingReason {
   selected: boolean;
 }
 
+interface Motivator {
+  id: string;
+  text: string;
+  emoji: string;
+}
+
 const CravingActive = () => {
   const navigate = useNavigate();
   const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes
@@ -20,6 +26,17 @@ const CravingActive = () => {
     { id: "habit", label: "Habit", selected: false },
     { id: "social", label: "Social", selected: false },
   ]);
+  const [motivators, setMotivators] = useState<Motivator[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("motivators");
+    setMotivators(saved ? JSON.parse(saved) : [
+      { id: "1", text: "My Family", emoji: "👨‍👩‍👧" },
+      { id: "2", text: "Feel Energetic", emoji: "⚡" },
+    ]);
+  }, []);
+
+
 
   const distractionActions = [
     { id: "water", icon: "water_drop", label: "Drink Water", animClass: "hover-anim-water" },
@@ -152,6 +169,23 @@ const CravingActive = () => {
             Hold on. The urge will pass.
           </p>
         </section>
+
+        {/* Motivators Banner */}
+        {motivators.length > 0 && (
+          <div className="bg-kinetic-surface-container-low p-4 rounded-xl border border-kinetic-primary/20 space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-kinetic-primary text-center">
+              Remember Why You Started
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {motivators.map((m) => (
+                <div key={m.id} className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-kinetic-surface-container border border-kinetic-outline-variant/10 text-xs font-bold">
+                  <span>{m.emoji}</span>
+                  <span className="text-kinetic-on-surface">{m.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Timer Display */}
         <section className="flex flex-col items-center justify-center py-2">
