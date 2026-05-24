@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix react-vite-refactor-main run dev",
-    "build": "npm --prefix react-vite-refactor-main run build",
+    "build": "vite build",
     "lint": "npm --prefix react-vite-refactor-main run lint",
     "test": "npm --prefix react-vite-refactor-main run test"
   }
