@@ -86,11 +86,27 @@ const Auth: React.FC = () => {
       className="bg-[#0c1321] text-[#dce2f6] min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
+      <style>{`
+        @keyframes borderPulse {
+          0%, 100% {
+            border-color: rgba(74, 222, 128, 0.15);
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.05);
+          }
+          50% {
+            border-color: rgba(74, 222, 128, 0.55);
+            box-shadow: 0 0 25px rgba(74, 222, 128, 0.25);
+          }
+        }
+        .animated-box-border {
+          animation: borderPulse 4s ease-in-out infinite;
+        }
+      `}</style>
+
       {/* Visual background glows */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#4ade80]/5 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#3B82F6]/5 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2" />
 
-      <div className="w-full max-w-md bg-[#121A2B] rounded-3xl p-6 sm:p-10 border border-white/5 shadow-2xl relative z-10 space-y-8 animate-in fade-in duration-500">
+      <div className="w-full max-w-md bg-[#121A2B] rounded-3xl p-6 sm:p-10 border border-white/5 shadow-2xl relative z-10 space-y-8 animate-in fade-in duration-500 animated-box-border">
 
         {/* Brand Header */}
         <div className="text-center space-y-2">
