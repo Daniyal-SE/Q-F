@@ -83,11 +83,16 @@ const Dashboard = () => {
     setTouchStartY(null);
   };
 
-  // Redirect to auth options page if not authenticated
+  // Redirect to auth options page if not authenticated or if guest
   useEffect(() => {
     const auth = localStorage.getItem("userAuth");
     if (!auth) {
       navigate("/auth");
+    } else {
+      const parsed = JSON.parse(auth);
+      if (parsed.role === "guest") {
+        navigate("/ai-food-scanner");
+      }
     }
   }, [navigate]);
 
@@ -337,9 +342,8 @@ const Dashboard = () => {
                       {isCompleted && !isActive ? "✓" : dayNum}
                     </text>
                   </svg>
-                  <span className={`text-[8px] font-black uppercase tracking-wider ${
-                    isActive ? "text-[#4ade80]" : isCompleted ? "text-[#22c55e]" : "text-[#475569]"
-                  }`}>D{dayNum}</span>
+                  <span className={`text-[8px] font-black uppercase tracking-wider ${isActive ? "text-[#4ade80]" : isCompleted ? "text-[#22c55e]" : "text-[#475569]"
+                    }`}>D{dayNum}</span>
                 </div>
               );
             })}
@@ -366,7 +370,7 @@ const Dashboard = () => {
                 <p className="text-[#94a3b8] text-[10px] font-bold uppercase tracking-widest mb-2">Choose Plan Mode</p>
                 <div className="grid grid-cols-3 gap-2">
                   {([{ id: "student", label: "Student", sub: "Balanced" }, { id: "work", label: "Work", sub: "Focused" }, { id: "flexible", label: "Flex", sub: "Intense" }] as const).map((plan) => (
-                    <button key={plan.id} onClick={() => setStreakData((s: StreakData) => ({ ...s, plan: plan.id }))} className={`p-2 rounded-lg border-2 transition-all text-left ${ streakData.plan === plan.id ? "bg-[#4ade80]/10 border-[#4ade80]" : "bg-transparent border-white/10 hover:border-[#4ade80]/40" }`}>
+                    <button key={plan.id} onClick={() => setStreakData((s: StreakData) => ({ ...s, plan: plan.id }))} className={`p-2 rounded-lg border-2 transition-all text-left ${streakData.plan === plan.id ? "bg-[#4ade80]/10 border-[#4ade80]" : "bg-transparent border-white/10 hover:border-[#4ade80]/40"}`}>
                       <p className={`font-bold text-xs ${streakData.plan === plan.id ? "text-[#4ade80]" : "text-[#dce2f6]"}`}>{plan.label}</p>
                       <p className="text-[#94a3b8] text-[9px] mt-0.5">{plan.sub}</p>
                     </button>

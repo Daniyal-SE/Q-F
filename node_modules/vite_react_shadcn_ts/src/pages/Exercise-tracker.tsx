@@ -5,6 +5,18 @@ import BottomNav from "@/components/BottomNav";
 const ExerciseTracker: React.FC = () => {
   const navigate = useNavigate();
   const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    const auth = localStorage.getItem("userAuth");
+    if (!auth) {
+      navigate("/auth");
+    } else {
+      const parsed = JSON.parse(auth);
+      if (parsed.role === "guest") {
+        navigate("/ai-food-scanner");
+      }
+    }
+  }, [navigate]);
   const [isActive, setIsActive] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<"running" | "walking" | "workout" | "cycling">("running");
 
@@ -61,7 +73,7 @@ const ExerciseTracker: React.FC = () => {
 
     const saved = localStorage.getItem("exerciseEntries");
     const entries = saved ? JSON.parse(saved) : [];
-    
+
     const newEntry = {
       id: Date.now().toString(),
       activity: selectedActivity,
@@ -77,7 +89,7 @@ const ExerciseTracker: React.FC = () => {
     const todayStr = new Date().toISOString().split("T")[0];
     const savedRecords = localStorage.getItem("dailyRecords");
     const records = savedRecords ? JSON.parse(savedRecords) : [];
-    
+
     records.push({
       date: todayStr,
       completed: true,
@@ -139,11 +151,10 @@ const ExerciseTracker: React.FC = () => {
               <button
                 key={act.id}
                 onClick={() => setSelectedActivity(act.id)}
-                className={`p-4 sm:p-5 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-3 aspect-square active:scale-95 duration-200 ${
-                  isSelected
+                className={`p-4 sm:p-5 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-3 aspect-square active:scale-95 duration-200 ${isSelected
                     ? "bg-[#4ade80]/15 border-[#4ade80] text-[#4ade80] shadow-[0_0_20px_rgba(74,222,128,0.2)]"
                     : "bg-[#151b2a] border-transparent text-[#94a3b8] hover:border-[#2e3544] hover:text-[#dce2f6]"
-                }`}
+                  }`}
               >
                 <span
                   className={`material-symbols-outlined text-3xl sm:text-4xl transition-transform ${isSelected ? "scale-110 material-filled" : "scale-100"}`}

@@ -206,12 +206,11 @@ const AiFoodScanner: React.FC = () => {
               )}
 
               {/* Shutter button positioned down (Task 3) */}
-              <div 
-                className={`${
-                  isStreaming 
-                    ? "absolute bottom-4 left-1/2 -translate-x-1/2 w-fit bg-black/60 px-5 py-2 rounded-full border border-white/10" 
-                    : "relative"
-                } z-10 flex flex-col items-center gap-2 backdrop-blur-sm transition-all`}
+              <div
+                className={`${isStreaming
+                  ? "absolute bottom-4 left-1/2 -translate-x-1/2 w-fit bg-black/60 px-5 py-2 rounded-full border border-white/10"
+                  : "relative"
+                  } z-10 flex flex-col items-center gap-2 backdrop-blur-sm transition-all`}
               >
                 <div className="flex gap-6 items-center">
 
@@ -219,10 +218,10 @@ const AiFoodScanner: React.FC = () => {
                   <div
                     onClick={(e) => { e.stopPropagation(); handleCameraButton(); }}
                     className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-[#6bfb9a]/20 active:scale-90 transition-all cursor-pointer select-none ${isStartingCamera
-                        ? "bg-[#6bfb9a]/60 text-[#003919]"
-                        : isStreaming
-                          ? "bg-white text-[#003919]"
-                          : "bg-[#6bfb9a] text-[#003919]"
+                      ? "bg-[#6bfb9a]/60 text-[#003919]"
+                      : isStreaming
+                        ? "bg-white text-[#003919]"
+                        : "bg-[#6bfb9a] text-[#003919]"
                       }`}
                   >
                     <span
@@ -309,13 +308,12 @@ const AiFoodScanner: React.FC = () => {
                         alert("Tap the shutter button or open gallery above to add photo!");
                       }
                     }}
-                    className={`aspect-square rounded-xl bg-[#151b2a] border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 select-none cursor-pointer ${
-                      img 
-                        ? "border-[#4ade80] scale-105" 
-                        : isLocked 
-                          ? "border-red-900/30 text-red-400 bg-red-950/10" 
-                          : "border-dashed border-slate-700 text-slate-500 hover:border-slate-600"
-                    }`}
+                    className={`aspect-square rounded-xl bg-[#151b2a] border-2 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 select-none cursor-pointer ${img
+                      ? "border-[#4ade80] scale-105"
+                      : isLocked
+                        ? "border-red-900/30 text-red-400 bg-red-950/10"
+                        : "border-dashed border-slate-700 text-slate-500 hover:border-slate-600"
+                      }`}
                   >
                     {img ? (
                       <>
@@ -339,6 +337,152 @@ const AiFoodScanner: React.FC = () => {
               })}
             </div>
           </div>
+
+          {/* ── Nutrition Ring ── */}
+          {(() => {
+            const CALORIE_GOAL = 2000;
+            const PROTEIN_GOAL = 120;
+            const FAT_GOAL = 65;
+            const CARBS_GOAL = 250;
+
+            const raw = localStorage.getItem("foodEntries");
+            const todayStr = new Date().toISOString().split("T")[0];
+            const entries: { calories?: number; protein?: number; fat?: number; carbs?: number; date?: string }[] =
+              raw ? JSON.parse(raw) : [];
+            const todayEntries = entries.filter((e) =>
+              e.date ? e.date.startsWith(todayStr) : true
+            );
+
+            const totalCals = todayEntries.reduce((s, e) => s + (e.calories || 0), 0);
+            const totalProtein = todayEntries.reduce((s, e) => s + (e.protein || 0), 0);
+            const totalFat = todayEntries.reduce((s, e) => s + (e.fat || 0), 0);
+            const totalCarbs = todayEntries.reduce((s, e) => s + (e.carbs || 0), 0);
+
+            const calsLeft = Math.max(0, CALORIE_GOAL - totalCals);
+            const calsConsumed = Math.min(totalCals, CALORIE_GOAL);
+
+            // SVG ring math — open C-shape like reference image
+            const CX = 110; const CY = 110; const R = 86;
+            const GAP_DEG = 60; // gap at the bottom
+            const START_DEG = 90 + GAP_DEG / 2;   // e.g. 120°
+            const END_DEG = 90 - GAP_DEG / 2 + 360; // e.g. 420° (= 60°)
+            const FULL_ARC = 360 - GAP_DEG;          // 300°
+
+            const toRad = (d: number) => (d * Math.PI) / 180;
+            const polarX = (deg: number) => CX + R * Math.cos(toRad(deg));
+            const polarY = (deg: number) => CY + R * Math.sin(toRad(deg));
+
+            // Track arc (full C arc, gap at bottom)
+            const trackD = `M ${polarX(START_DEG)} ${polarY(START_DEG)}
+              A ${R} ${R} 0 1 1 ${polarX(END_DEG)} ${polarY(END_DEG)}`;
+
+            // Filled arc based on calorie progress
+            const pct = Math.min(calsConsumed / CALORIE_GOAL, 1);
+            const filledArcDeg = pct * FULL_ARC;
+            const filledEndDeg = START_DEG + filledArcDeg;
+            const filledLargeArc = filledArcDeg > 180 ? 1 : 0;
+            const filledD = pct <= 0
+              ? ""
+              : pct >= 1
+                ? trackD
+                : `M ${polarX(START_DEG)} ${polarY(START_DEG)}
+                   A ${R} ${R} 0 ${filledLargeArc} 1 ${polarX(filledEndDeg)} ${polarY(filledEndDeg)}`;
+
+            const macros = [
+              { label: "Protein", current: Math.round(totalProtein), goal: PROTEIN_GOAL, color: "#ef4444" },
+              { label: "Fat", current: Math.round(totalFat), goal: FAT_GOAL, color: "#f59e0b" },
+              { label: "Carbs", current: Math.round(totalCarbs), goal: CARBS_GOAL, color: "#3b82f6" },
+            ];
+
+            return (
+              <div className="py-3 px-4">
+                <p className="text-[10px] font-black tracking-widest text-[#bccabb] uppercase mb-5">
+                  Today's Nutrition
+                </p>
+                <div className="flex items-center justify-between w-full">
+                  {/* Ring SVG (Larger size) */}
+                  <div className="relative shrink-0">
+                    <svg width="220" height="220" viewBox="0 0 220 220">
+                      <defs>
+                        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#4ade80" />
+                          <stop offset="100%" stopColor="#3b82f6" />
+                        </linearGradient>
+                      </defs>
+                      {/* Track */}
+                      <path
+                        d={trackD}
+                        fill="none"
+                        stroke="#1e293b"
+                        strokeWidth="15"
+                        strokeLinecap="round"
+                      />
+                      {/* Progress */}
+                      {pct > 0 && (
+                        <path
+                          d={filledD}
+                          fill="none"
+                          stroke="url(#ringGrad)"
+                          strokeWidth="15"
+                          strokeLinecap="round"
+                          style={{ transition: "stroke-dashoffset 0.8s ease" }}
+                        />
+                      )}
+                      {/* Calories left */}
+                      <text
+                        x={CX} y={CY - 12}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fontSize="36"
+                        fontWeight="800"
+                        fill="#dce2f6"
+                        fontFamily="Manrope, sans-serif"
+                      >{calsLeft}</text>
+                      <text
+                        x={CX} y={CY + 18}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fontSize="9.5"
+                        fill="#64748b"
+                        fontFamily="Inter, sans-serif"
+                        letterSpacing="0.1em"
+                      >CALORIES LEFT</text>
+                      <text
+                        x={CX} y={CY + 44}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fontSize="13"
+                        fill="#4ade80"
+                        fontFamily="Inter, sans-serif"
+                        fontWeight="700"
+                      >🔥 +{totalCals}</text>
+                    </svg>
+                  </div>
+
+                  {/* Macro progress bars (Larger size, short bars, only left side) */}
+                  <div className="flex flex-col gap-5">
+                    {macros.map((m) => {
+                      const barPct = Math.min((m.current / m.goal) * 100, 100);
+                      return (
+                        <div key={m.label} className="flex flex-col w-[150px]">
+                          <span className="text-[14px] font-black text-[#dce2f6] uppercase tracking-wider mb-2">{m.label}</span>
+                          <div className="w-full h-[3.5px] bg-[#1e293b] rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{ width: `${barPct}%`, background: m.color }}
+                            />
+                          </div>
+                          <span className="text-[11px] text-[#64748b] font-bold text-right mt-1.5">
+                            {m.goal}g
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* ── Results Cards ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -398,7 +542,7 @@ const AiFoodScanner: React.FC = () => {
             </div>
           </div>
 
-          <button 
+          <button
             onClick={() => {
               if (capturedImages.length === 0) {
                 alert("Please scan or upload a meal photo first!");

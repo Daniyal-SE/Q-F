@@ -169,19 +169,19 @@ const SettingsScreen = () => {
       <main className="flex-1 px-4 sm:px-6 pb-24 sm:pb-32 pt-4 max-w-2xl mx-auto w-full">
         {/* Profile Header Section */}
         <section className="mb-10 animate-fade-in">
-          <div className="flex items-center gap-4 sm:gap-6 p-4 sm:p-6 rounded-xl bg-kinetic-surface-container">
-            <div className="relative">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-4 border-kinetic-primary">
-                <img
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                  src={getCurrentAvatar()}
-                />
+          <div className="flex flex-col p-4 sm:p-6 rounded-xl bg-kinetic-surface-container gap-4">
+            <div className="flex items-center gap-4 sm:gap-6">
+              <div className="relative">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-4 border-kinetic-primary">
+                  <img
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                    src={getCurrentAvatar()}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex-1 flex flex-col">
-              {isEditingName ? (
-                <div className="flex gap-2 mb-2">
+              <div className="flex-1 flex flex-col">
+                {isEditingName ? (
                   <input
                     type="text"
                     value={editInputValue}
@@ -189,46 +189,50 @@ const SettingsScreen = () => {
                     onKeyPress={(e) => {
                       if (e.key === "Enter") handleSaveName();
                     }}
-                    className="flex-1 px-3 py-2 bg-kinetic-surface-container border border-kinetic-primary rounded-lg text-kinetic-on-surface font-black focus:outline-none"
+                    className="w-full px-3 py-2 bg-[#0c1321] border border-kinetic-primary rounded-lg text-kinetic-on-surface font-black focus:outline-none"
                     autoFocus
                   />
-                  <button
-                    onClick={handleSaveName}
-                    className="px-3 py-2 bg-kinetic-primary text-kinetic-on-primary rounded-lg font-bold"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setIsEditingName(false)}
-                    className="px-3 py-2 bg-kinetic-surface-container text-kinetic-on-surface rounded-lg font-bold"
-                  >
-                    Cancel
-                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-lg sm:text-2xl font-black tracking-tight text-kinetic-on-surface">
+                      {username}
+                    </h2>
+                    <button
+                      onClick={() => setIsEditingName(true)}
+                      className="p-1 hover:bg-kinetic-surface-container rounded transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-kinetic-primary text-lg">
+                        edit
+                      </span>
+                    </button>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-kinetic-primary font-bold text-sm uppercase tracking-wider">
+                    Current Streak: {streakData?.totalDays || 0} Days
+                  </span>
                 </div>
-              ) : (
-                <div className="flex items-center gap-2 mb-2">
-                  <h2 className="text-lg sm:text-2xl font-black tracking-tight text-kinetic-on-surface">
-                    {username}
-                  </h2>
-                  <button
-                    onClick={() => setIsEditingName(true)}
-                    className="p-1 hover:bg-kinetic-surface-container rounded transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-kinetic-primary text-lg">
-                      edit
-                    </span>
-                  </button>
-                </div>
-              )}
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-kinetic-primary font-bold text-sm uppercase tracking-wider">
-                  Current Streak: {streakData?.totalDays || 0} Days
-                </span>
+                <p className="text-kinetic-on-surface-variant text-xs mt-1 font-medium opacity-80 uppercase tracking-widest">
+                  Level {Math.floor((streakData?.totalDays || 0) / 5) + 1} Coach
+                </p>
               </div>
-              <p className="text-kinetic-on-surface-variant text-xs mt-1 font-medium opacity-80 uppercase tracking-widest">
-                Level {Math.floor((streakData?.totalDays || 0) / 5) + 1} Coach
-              </p>
             </div>
+            {isEditingName && (
+              <div className="flex gap-3 justify-end mt-2 pt-3 border-t border-kinetic-outline/10">
+                <button
+                  onClick={() => setIsEditingName(false)}
+                  className="px-4 py-2 bg-[#1d263b] text-kinetic-on-surface rounded-lg font-bold text-xs uppercase tracking-wider active:scale-95 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveName}
+                  className="px-4 py-2 bg-kinetic-primary text-kinetic-on-primary rounded-lg font-bold text-xs uppercase tracking-wider active:scale-95 transition-all"
+                >
+                  Save
+                </button>
+              </div>
+            )}
           </div>
         </section>
 
@@ -254,9 +258,9 @@ const SettingsScreen = () => {
         {/* Motivators Section */}
         <div className="mb-8">
           <h3 className="text-xs font-black text-kinetic-on-surface-variant tracking-[0.2em] uppercase mb-4">My Motivators</h3>
-          <div className="bg-kinetic-surface-container-low rounded-xl p-4 space-y-3 mb-4">
+          <div className="bg-kinetic-surface-container-low rounded-xl p-4 space-y-3">
             {motivators.length === 0 ? (
-              <p className="text-kinetic-on-surface-variant text-sm text-center py-3 opacity-60">No motivators yet. Add one below!</p>
+              <p className="text-kinetic-on-surface-variant text-sm text-center py-3 opacity-60">No motivators yet.</p>
             ) : (
               motivators.map((m) => (
                 <div key={m.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-kinetic-surface-container">
@@ -273,41 +277,6 @@ const SettingsScreen = () => {
                 </div>
               ))
             )}
-          </div>
-          {/* Add new motivator */}
-          <div className="bg-kinetic-surface-container-low rounded-xl p-4 space-y-3">
-            <p className="text-xs font-bold text-kinetic-on-surface-variant uppercase tracking-widest">Add Motivator</p>
-            <div className="flex flex-wrap gap-2">
-              {EMOJI_OPTIONS.map((e) => (
-                <button
-                  key={e}
-                  onClick={() => setNewMotivatorEmoji(e)}
-                  className={`text-xl w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
-                    newMotivatorEmoji === e
-                      ? "bg-kinetic-primary/20 ring-2 ring-kinetic-primary scale-110"
-                      : "bg-kinetic-surface-container hover:bg-kinetic-surface-container-high"
-                  }`}
-                >
-                  {e}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newMotivatorText}
-                onChange={(e) => setNewMotivatorText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddMotivator()}
-                placeholder="e.g., My family, Feel healthy..."
-                className="flex-1 px-4 py-2 text-sm bg-kinetic-surface-container rounded-lg text-kinetic-on-surface placeholder-kinetic-on-surface-variant/40 border border-kinetic-outline/20 focus:outline-none focus:border-kinetic-primary"
-              />
-              <button
-                onClick={handleAddMotivator}
-                className="px-4 py-2 bg-kinetic-primary text-kinetic-on-primary font-bold text-sm rounded-lg hover:opacity-90 transition active:scale-95"
-              >
-                Add
-              </button>
-            </div>
           </div>
         </div>
         <div className="mb-6 sm:mb-10">

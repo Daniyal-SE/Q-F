@@ -60,14 +60,14 @@ const DifficultySelection = () => {
               key={d.id}
               onClick={() => setSelected(d.id)}
               className={`group relative flex items-center p-6 text-left rounded-xl transition-all duration-300 ${selected === d.id
-                  ? "bg-kinetic-surface-container border-2 border-kinetic-primary ring-4 ring-kinetic-primary/10 scale-[1.02]"
-                  : "bg-kinetic-surface-container-low border-2 border-transparent hover:bg-kinetic-surface-container hover:scale-[1.01]"
+                ? "bg-kinetic-surface-container border-2 border-kinetic-primary ring-4 ring-kinetic-primary/10 scale-[1.02]"
+                : "bg-kinetic-surface-container-low border-2 border-transparent hover:bg-kinetic-surface-container hover:scale-[1.01]"
                 }`}
             >
               <div
                 className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg ${selected === d.id
-                    ? "bg-kinetic-primary/20 text-kinetic-primary"
-                    : "bg-kinetic-surface-container-highest text-kinetic-on-surface-variant group-hover:text-kinetic-primary transition-colors"
+                  ? "bg-kinetic-primary/20 text-kinetic-primary"
+                  : "bg-kinetic-surface-container-highest text-kinetic-on-surface-variant group-hover:text-kinetic-primary transition-colors"
                   }`}
               >
                 <span className="material-symbols-outlined">{d.icon}</span>

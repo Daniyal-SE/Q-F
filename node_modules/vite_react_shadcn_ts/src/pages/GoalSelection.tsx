@@ -53,18 +53,16 @@ const GoalSelection = () => {
             <button
               key={goal.id}
               onClick={() => setSelected(goal.id)}
-              className={`group relative flex flex-col items-start p-6 rounded-xl transition-all duration-300 text-left border-2 ${
-                selected === goal.id
+              className={`group relative flex flex-col items-start p-6 rounded-xl transition-all duration-300 text-left border-2 ${selected === goal.id
                   ? "bg-kinetic-surface-container border-kinetic-primary shadow-[0_0_20px_hsla(var(--kinetic-primary)/0.1)]"
                   : "bg-kinetic-surface-container-low border-transparent hover:bg-kinetic-surface-container hover:border-kinetic-primary/20"
-              }`}
+                }`}
             >
               <div
-                className={`w-12 h-12 flex items-center justify-center rounded-xl mb-4 transition-transform group-hover:scale-110 ${
-                  selected === goal.id
+                className={`w-12 h-12 flex items-center justify-center rounded-xl mb-4 transition-transform group-hover:scale-110 ${selected === goal.id
                     ? "bg-kinetic-primary-container text-white"
                     : "bg-kinetic-surface-container-highest text-kinetic-primary"
-                }`}
+                  }`}
               >
                 <span
                   className={`material-symbols-outlined text-3xl ${selected === goal.id ? "material-filled" : ""}`}

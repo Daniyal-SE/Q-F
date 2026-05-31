@@ -274,27 +274,15 @@ const CravingActive = () => {
                     <div
                       className="absolute inset-0 bg-current transition-opacity duration-200 opacity-100 group-hover:opacity-0"
                       style={{
-                        WebkitMaskImage: `url(${walkStatic})`,
-                        WebkitMaskSize: "contain",
-                        WebkitMaskRepeat: "no-repeat",
-                        WebkitMaskPosition: "center",
-                        maskImage: `url(${walkStatic})`,
-                        maskSize: "contain",
-                        maskRepeat: "no-repeat",
-                        maskPosition: "center",
+                        WebkitMask: `url(${walkStatic}) no-repeat center / contain`,
+                        mask: `url(${walkStatic}) no-repeat center / contain`,
                       }}
                     />
                     <div
                       className="absolute inset-0 bg-current transition-opacity duration-200 opacity-0 group-hover:opacity-100"
                       style={{
-                        WebkitMaskImage: `url(${walkGif})`,
-                        WebkitMaskSize: "contain",
-                        WebkitMaskRepeat: "no-repeat",
-                        WebkitMaskPosition: "center",
-                        maskImage: `url(${walkGif})`,
-                        maskSize: "contain",
-                        maskRepeat: "no-repeat",
-                        maskPosition: "center",
+                        WebkitMask: `url(${walkGif}) no-repeat center / contain`,
+                        mask: `url(${walkGif}) no-repeat center / contain`,
                       }}
                     />
                   </div>

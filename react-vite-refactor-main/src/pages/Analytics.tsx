@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import TopAppBar from "@/components/TopAppBar";
 import BottomNav from "@/components/BottomNav";
 
@@ -20,6 +21,20 @@ interface DailyRecord {
 }
 
 const Analytics = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const auth = localStorage.getItem("userAuth");
+    if (!auth) {
+      navigate("/auth");
+    } else {
+      const parsed = JSON.parse(auth);
+      if (parsed.role === "guest") {
+        navigate("/ai-food-scanner");
+      }
+    }
+  }, [navigate]);
+
   const [streakData, setStreakData] = useState<StreakData | null>(null);
   const [dailyRecords, setDailyRecords] = useState<DailyRecord[]>([]);
   const [remainingTime, setRemainingTime] = useState("24:00:00");

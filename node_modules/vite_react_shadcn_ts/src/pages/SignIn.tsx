@@ -66,7 +66,7 @@ const SignIn: React.FC = () => {
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#3B82F6]/5 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2" />
 
       <div className="w-full max-w-md bg-[#121A2B] rounded-3xl p-6 sm:p-10 border border-white/5 shadow-2xl relative z-10 space-y-6 animate-in fade-in duration-500">
-        
+
         {/* Back navigation button */}
         <button
           onClick={() => navigate("/auth")}

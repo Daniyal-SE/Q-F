@@ -91,7 +91,7 @@ const Auth: React.FC = () => {
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#3B82F6]/5 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2" />
 
       <div className="w-full max-w-md bg-[#121A2B] rounded-3xl p-6 sm:p-10 border border-white/5 shadow-2xl relative z-10 space-y-8 animate-in fade-in duration-500">
-        
+
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <h1
@@ -109,21 +109,19 @@ const Auth: React.FC = () => {
         <div className="bg-[#1b253b] p-1 rounded-xl flex gap-1 border border-white/5">
           <button
             onClick={() => { setActiveTab("signin"); setErrorMsg(""); }}
-            className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${
-              activeTab === "signin"
+            className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === "signin"
                 ? "bg-[#4ade80] text-[#003919] shadow-lg shadow-[#4ade80]/10"
                 : "text-[#94a3b8] hover:text-[#dce2f6]"
-            }`}
+              }`}
           >
             Sign In
           </button>
           <button
             onClick={() => { setActiveTab("register"); setErrorMsg(""); }}
-            className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${
-              activeTab === "register"
+            className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === "register"
                 ? "bg-[#4ade80] text-[#003919] shadow-lg shadow-[#4ade80]/10"
                 : "text-[#94a3b8] hover:text-[#dce2f6]"
-            }`}
+              }`}
           >
             Register
           </button>

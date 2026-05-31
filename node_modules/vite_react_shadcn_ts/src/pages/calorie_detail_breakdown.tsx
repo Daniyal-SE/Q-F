@@ -50,6 +50,18 @@ const CalorieDetailBreakdown: React.FC = () => {
   const [weekStats, setWeekStats] = useState<DayStats[]>([]);
 
   useEffect(() => {
+    const auth = localStorage.getItem("userAuth");
+    if (!auth) {
+      navigate("/auth");
+    } else {
+      const parsed = JSON.parse(auth);
+      if (parsed.role === "guest") {
+        navigate("/ai-food-scanner");
+      }
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     // Load today's food entries
     const rawFood = localStorage.getItem("foodEntries");
     const allFood: FoodEntry[] = rawFood ? JSON.parse(rawFood) : [];

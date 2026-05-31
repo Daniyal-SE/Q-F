@@ -4,6 +4,18 @@ import { useNavigate } from "react-router-dom";
 const CravingControl = () => {
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    const auth = localStorage.getItem("userAuth");
+    if (!auth) {
+      navigate("/auth");
+    } else {
+      const parsed = JSON.parse(auth);
+      if (parsed.role === "guest") {
+        navigate("/ai-food-scanner");
+      }
+    }
+  }, [navigate]);
+
   return (
     <div className="bg-kinetic-surface text-kinetic-on-surface font-body overflow-x-hidden">
       <style>{`
