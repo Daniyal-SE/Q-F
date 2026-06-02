@@ -90,9 +90,6 @@ export default function Home() {
           return adultKeywords.some(word => lower.includes(word));
         };
 
-        const romanceRes = isTayyab 
-          ? await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc${unrestrictedRomance ? '&include_adult=true' : '&include_adult=false'}`)
-          : null;
 
         const formatTMDB = (results, applyKeywordFilter = true) => results?.filter(m => {
           if (adultEnabled) return true;
