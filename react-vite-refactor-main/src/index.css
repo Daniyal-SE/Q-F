@@ -1,0 +1,248 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base {
+  :root {
+    --background: 222 71% 10%;
+    --foreground: 228 90% 93%;
+    --card: 224 40% 14%;
+    --card-foreground: 228 90% 93%;
+    --popover: 224 40% 14%;
+    --popover-foreground: 228 90% 93%;
+    --primary: 139 72% 59%;
+    --primary-foreground: 149 100% 11%;
+    --secondary: 0 100% 84%;
+    --secondary-foreground: 0 100% 3%;
+    --muted: 224 25% 23%;
+    --muted-foreground: 103 18% 76%;
+    --accent: 224 25% 23%;
+    --accent-foreground: 228 90% 93%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 228 90% 93%;
+    --border: 139 20% 27%;
+    --input: 224 25% 23%;
+    --ring: 139 72% 59%;
+    --radius: 0.75rem;
+
+    /* Kinetic custom tokens */
+    --kinetic-surface: 222 71% 10%;
+    --kinetic-surface-container: 224 40% 14%;
+    --kinetic-surface-container-low: 225 41% 13%;
+    --kinetic-surface-container-high: 222 29% 18%;
+    --kinetic-surface-container-highest: 224 25% 23%;
+    --kinetic-surface-variant: 224 25% 23%;
+    --kinetic-on-surface: 228 90% 93%;
+    --kinetic-on-surface-variant: 103 18% 76%;
+    --kinetic-primary: 139 72% 59%;
+    --kinetic-primary-container: 145 68% 47%;
+    --kinetic-on-primary: 149 100% 11%;
+    --kinetic-on-primary-container: 152 100% 21%;
+    --kinetic-outline: 120 6% 55%;
+    --kinetic-outline-variant: 120 10% 27%;
+    --kinetic-tertiary: 220 100% 84%;
+    --kinetic-tertiary-container: 216 100% 75%;
+    --kinetic-secondary-container: 354 100% 32%;
+    --kinetic-on-secondary-container: 5 100% 82%;
+    --kinetic-error: 0 100% 64%;
+
+    --sidebar-background: 224 40% 14%;
+    --sidebar-foreground: 228 90% 93%;
+    --sidebar-primary: 139 72% 59%;
+    --sidebar-primary-foreground: 149 100% 11%;
+    --sidebar-accent: 224 25% 23%;
+    --sidebar-accent-foreground: 228 90% 93%;
+    --sidebar-border: 139 20% 27%;
+    --sidebar-ring: 139 72% 59%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  html {
+    /* Fluid root font-size: scales from ~13.5px on 320px screens to 16px on 480px+ */
+    font-size: clamp(13.5px, 2.5vw + 5px, 16px);
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+}
+
+@layer utilities {
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  .material-filled {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+/* Custom range slider */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  background: hsl(var(--kinetic-primary));
+  cursor: pointer;
+  margin-top: -8px;
+  box-shadow: 0 0 15px hsla(var(--kinetic-primary) / 0.4);
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: hsl(var(--kinetic-surface-container-highest));
+  border-radius: 4px;
+}
+
+/* Splash animations */
+@keyframes splash-glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes splash-logo-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.05) rotate(2deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes splash-text-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+    letter-spacing: 0.5em;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    letter-spacing: 0.2em;
+  }
+}
+
+@keyframes splash-tagline-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes splash-loader {
+  0% {
+    width: 0%;
+  }
+
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes splash-bottom-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  100% {
+    opacity: 0.6;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-splash-glow {
+  animation: splash-glow-pulse 3s ease-in-out infinite;
+}
+
+.animate-splash-logo {
+  animation: splash-logo-enter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-splash-text {
+  animation: splash-text-enter 0.8s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+.animate-splash-tagline {
+  animation: splash-tagline-enter 0.6s ease-out 0.8s forwards;
+  opacity: 0;
+}
+
+.animate-splash-loader {
+  animation: splash-loader 2s ease-in-out 1s forwards;
+}
+
+.animate-splash-bottom {
+  animation: splash-bottom-enter 0.5s ease-out 1.2s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+  opacity: 0;
+}
