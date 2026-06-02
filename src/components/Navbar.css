@@ -36,10 +36,31 @@
   transition: all 0.3s ease;
 }
 
+/* Standalone variant — used when navbar pill is hidden (detail/stream pages) */
+.navbar-global-back--standalone {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 500;
+  transform: none;
+  background: rgba(15, 15, 20, 0.88);
+  border: 1px solid rgba(229, 9, 20, 0.3);
+  color: #fff;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.navbar-global-back--standalone:hover {
+  background: rgba(229, 9, 20, 0.25) !important;
+  border-color: rgba(229, 9, 20, 0.6) !important;
+  color: #fff !important;
+  transform: translateX(-2px) !important;
+}
+
 .navbar-global-back:hover {
   background: rgba(0, 0, 0, 0.06);
   color: #000;
 }
+
 
 .navbar--hidden {
   transform: translateY(-100%);

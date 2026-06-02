@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 import '../components/ContentSection.css';
 import { useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, Zap, Play, Edit, LogOut, Trash2, Lock, Shield, X, Check, KeyRound } from 'lucide-react';
+import { Clock, CheckCircle, Zap, Play, Edit, LogOut, Trash2, Lock, Shield, X, Check, KeyRound, Star } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Button from '../components/Button';
 import { dashboardData } from '../data/mockData';
+import { getFavourites, toggleFavourite } from '../components/MediaCard';
 
 // ─── Hardcoded user accounts (same as Login.jsx) ─────────────────────────────
 const USERS = [
@@ -44,6 +45,7 @@ export default function Dashboard() {
   // ── Misc ───────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState(0);
   const [history, setHistory] = useState([]);
+  const [favourites, setFavourites] = useState(() => getFavourites());
 
   // ── Parental Controls ──────────────────────────────────────────────────────
   const [adultEnabled, setAdultEnabled] = useState(localStorage.getItem(`cinestream_adult_enabled_${sessionUser}`) === 'true');
@@ -56,6 +58,19 @@ export default function Dashboard() {
     const saved = JSON.parse(localStorage.getItem('cinestream_watch_history') || '[]');
     setHistory(saved);
   }, []);
+
+  // Refresh favourites whenever this tab becomes active
+  useEffect(() => {
+    if (activeTab === 1) {
+      setFavourites(getFavourites());
+    }
+  }, [activeTab]);
+
+  const handleRemoveFav = (id) => {
+    const item = favourites.find(f => f.id === id);
+    if (item) toggleFavourite(item); // removes it
+    setFavourites(getFavourites());
+  };
 
   const totalSeconds = history.reduce((sum, item) => sum + (item.watchSeconds || 0), 0);
   const displayHours = (totalSeconds / 3600).toFixed(1);
@@ -221,22 +236,72 @@ export default function Dashboard() {
             )}
           </div>
           <div className="history-grid">
-            {history.length > 0 ? history.map(item => (
-              <div key={item.id} className="history-card" onClick={() => navigate(item.isTMDB ? `/tmdb/${item.id}` : `/movie/${item.id}`)}>
-                <div className="history-card__poster">
-                  <img src={item.poster} alt={item.title} loading="lazy" />
-                  <div className="history-card__overlay"><Play size={20} fill="white" strokeWidth={0} /></div>
-                  {item.isNew && <span className="badge badge-new history-card__badge">NEW</span>}
+            {/* WATCH HISTORY TAB */}
+            {activeTab === 0 && (
+              history.length > 0 ? history.map(item => (
+                <div key={item.id} className="history-card" onClick={() => navigate(item.isTMDB ? `/tmdb/${item.id}` : `/movie/${item.id}`)}>
+                  <div className="history-card__poster">
+                    <img src={item.poster} alt={item.title} loading="lazy" />
+                    <div className="history-card__overlay"><Play size={20} fill="white" strokeWidth={0} /></div>
+                    {item.isNew && <span className="badge badge-new history-card__badge">NEW</span>}
+                  </div>
+                  <h4 className="history-card__title">{item.title}</h4>
+                  <p className="history-card__meta">
+                    {item.year} · {item.genre}
+                    {item.watchSeconds > 0 && ` · Watched ${Math.floor(item.watchSeconds / 60) > 0 ? `${Math.floor(item.watchSeconds / 60)}m ` : ''}${item.watchSeconds % 60}s`}
+                  </p>
                 </div>
-                <h4 className="history-card__title">{item.title}</h4>
-                <p className="history-card__meta">
-                  {item.year} · {item.genre}
-                  {item.watchSeconds > 0 && ` · Watched ${Math.floor(item.watchSeconds / 60) > 0 ? `${Math.floor(item.watchSeconds / 60)}m ` : ''}${item.watchSeconds % 60}s`}
-                </p>
-              </div>
-            )) : (
-              <div style={{ padding: '40px 0', color: 'var(--text-muted)' }}>
-                You haven't watched any trailers yet.
+              )) : (
+                <div style={{ padding: '40px 0', color: 'var(--text-muted)', gridColumn: '1/-1' }}>
+                  You haven't watched any trailers yet.
+                </div>
+              )
+            )}
+
+            {/* FAVOURITES TAB */}
+            {activeTab === 1 && (
+              favourites.length > 0 ? favourites.map(item => (
+                <div key={item.id} className="history-card" style={{ position: 'relative' }}>
+                  {/* Remove fav button */}
+                  <button
+                    className="fav-remove-btn"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveFav(item.id); }}
+                    title="Remove from favourites"
+                    aria-label="Remove from favourites"
+                  >
+                    <Star size={13} fill="#f5c518" stroke="#f5c518" />
+                  </button>
+                  <div
+                    className="history-card__poster"
+                    onClick={() => navigate(item.isTMDB ? `/tmdb/${item.id}` : `/movie/${item.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {item.poster ? (
+                      <img src={item.poster} alt={item.title} loading="lazy" />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: 'var(--text-dim)' }}>
+                        {item.title?.[0]}
+                      </div>
+                    )}
+                    <div className="history-card__overlay"><Play size={20} fill="white" strokeWidth={0} /></div>
+                  </div>
+                  <h4 className="history-card__title">{item.title}</h4>
+                  <p className="history-card__meta">
+                    {item.year}{item.rating ? ` · ★ ${item.rating}` : ''}
+                  </p>
+                </div>
+              )) : (
+                <div style={{ padding: '40px 0', color: 'var(--text-muted)', gridColumn: '1/-1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                  <Star size={36} stroke="rgba(255,255,255,0.15)" />
+                  <p style={{ margin: 0 }}>No favourites yet. Tap the ★ on any movie card to save it here.</p>
+                </div>
+              )
+            )}
+
+            {/* DOWNLOADS TAB */}
+            {activeTab === 2 && (
+              <div style={{ padding: '40px 0', color: 'var(--text-muted)', gridColumn: '1/-1' }}>
+                No downloads available.
               </div>
             )}
           </div>

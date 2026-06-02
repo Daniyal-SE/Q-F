@@ -73,6 +73,51 @@
   left: 8px;
 }
 
+/* ── Favourite star button ───────────────────────────── */
+.media-card__fav-btn {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Show on hover of the card */
+.media-card:hover .media-card__fav-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Always show when already favourited */
+.media-card__fav-btn--active {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  border-color: rgba(245, 197, 24, 0.5) !important;
+  box-shadow: 0 0 10px rgba(245, 197, 24, 0.35);
+}
+
+.media-card__fav-btn:hover {
+  background: rgba(245, 197, 24, 0.2) !important;
+  border-color: rgba(245, 197, 24, 0.6) !important;
+  box-shadow: 0 0 14px rgba(245, 197, 24, 0.4) !important;
+  transform: scale(1.15) !important;
+}
+
+
 /* ── Info strip ──────────────────────────────────────── */
 .media-card__info {
   padding: 8px 0 0;

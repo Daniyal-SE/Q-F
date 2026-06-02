@@ -11,6 +11,8 @@ import AnimeDetail from "./pages/AnimeDetail";
 import WatchPage from "./pages/WatchPage";
 import TMDBDetail from "./pages/TMDBDetail";
 import OTTPage from "./pages/OTTPage";
+import SeeAllPage from "./pages/SeeAllPage";
+import CastDetailPage from "./pages/CastDetailPage";
 import { Lock } from "lucide-react";
 
 const APP_USERS = [
@@ -285,6 +287,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/see-all"
+          element={
+            <ProtectedRoute>
+              <SeeAllPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/person/:id"
+          element={
+            <ProtectedRoute>
+              <CastDetailPage />
             </ProtectedRoute>
           }
         />

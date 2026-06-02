@@ -1,6 +1,6 @@
 import React from 'react';
 import './ContentSection.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import MediaCard from './MediaCard';
 
@@ -51,6 +51,7 @@ export default function ContentSection({
   id,
 }) {
   const scrollRef = React.useRef(null);
+  const navigate = useNavigate();
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -72,18 +73,33 @@ export default function ContentSection({
       <div className="container">
 
         {/* Section heading */}
-        <div className="section-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="section-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
           <h2>{title}</h2>
-          {layout === 'scroll' && items.length > 0 && (
-            <div className="content-section__nav-buttons">
-              <button className="content-section__nav-btn" onClick={scrollLeft} aria-label="Scroll left">
-                <ChevronLeft size={20} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {layout === 'scroll' && items.length > 0 && (
+              <button
+                className="content-section__see-all"
+                onClick={() => {
+                  sessionStorage.setItem('cinestream_home_scroll', String(window.scrollY));
+                  navigate('/see-all', {
+                    state: { id, title, items, fromScrollY: window.scrollY }
+                  });
+                }}
+              >
+                See All
               </button>
-              <button className="content-section__nav-btn" onClick={scrollRight} aria-label="Scroll right">
-                <ChevronRight size={20} />
-              </button>
-            </div>
-          )}
+            )}
+            {layout === 'scroll' && items.length > 0 && (
+              <div className="content-section__nav-buttons">
+                <button className="content-section__nav-btn" onClick={scrollLeft} aria-label="Scroll left">
+                  <ChevronLeft size={20} />
+                </button>
+                <button className="content-section__nav-btn" onClick={scrollRight} aria-label="Scroll right">
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Cards */}

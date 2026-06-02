@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { label: "Anime", path: "anime" },
 ];
 
-export default function Navbar({ showBack }) {
+export default function Navbar({ showBack, hideNavbar, onBack }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -33,6 +33,9 @@ export default function Navbar({ showBack }) {
   }, [location]);
 
   useEffect(() => {
+    // When navbar is hidden (detail/stream pages), skip mouse-tracking
+    if (hideNavbar) return;
+
     const handleMouseMove = (e) => {
       // Keep visible on smaller screens like mobile/tablet
       if (window.innerWidth <= 1024) {
@@ -50,7 +53,7 @@ export default function Navbar({ showBack }) {
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [open]);
+  }, [open, hideNavbar]);
 
   const toggleTheme = () => {
     const isLight = document.body.classList.contains("theme-light");
@@ -79,6 +82,28 @@ export default function Navbar({ showBack }) {
     }
   };
 
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+  };
+
+  // When hideNavbar=true: render ONLY the floating back button, no navbar pill
+  if (hideNavbar) {
+    return (
+      <button
+        className="navbar-global-back navbar-global-back--standalone"
+        onClick={handleBack}
+        aria-label="Go Back"
+      >
+        <ArrowLeft size={20} />
+        <span>Back</span>
+      </button>
+    );
+  }
+
   return (
     <header
       className={`navbar ${isVisible ? "navbar--visible" : "navbar--hidden"}`}
@@ -86,7 +111,7 @@ export default function Navbar({ showBack }) {
       {showBack && (
         <button
           className="navbar-global-back"
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           aria-label="Go Back"
         >
           <ArrowLeft size={20} />

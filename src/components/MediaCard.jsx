@@ -1,7 +1,44 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import './MediaCard.css';
 import { useNavigate } from 'react-router-dom';
 import { Play, Star } from 'lucide-react';
+
+// ─── Favourites helpers ───────────────────────────────────────────────────────
+const FAVS_KEY = 'cinestream_favourites';
+
+export function getFavourites() {
+  try {
+    return JSON.parse(localStorage.getItem(FAVS_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+export function isFavourite(id) {
+  return getFavourites().some(f => f.id === id);
+}
+
+export function toggleFavourite(item) {
+  const favs = getFavourites();
+  const idx = favs.findIndex(f => f.id === item.id);
+  if (idx !== -1) {
+    favs.splice(idx, 1);
+  } else {
+    favs.unshift({
+      id: item.id,
+      title: item.title,
+      poster: item.poster ?? item.thumb ?? null,
+      year: item.year ?? '',
+      rating: item.rating ?? null,
+      type: item.type ?? 'Movie',
+      genre: item.genre ?? '',
+      isTMDB: item.isTMDB ?? true,
+    });
+  }
+  localStorage.setItem(FAVS_KEY, JSON.stringify(favs));
+  return idx === -1; // true = added, false = removed
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * MediaCard — fully prop-driven, reusable poster/episode card.
@@ -16,6 +53,7 @@ import { Play, Star } from 'lucide-react';
  * showGenre     {boolean}  Show genre tag     (default false)
  * showBadge     {boolean}  Show corner badge  (default true)
  * showMatch     {boolean}  Show % match label (default false)
+ * showFavBtn    {boolean}  Show favourite star button (default true)
  * playIconSize  {number}   Size of the play icon in overlay (default 22)
  * onNavigate    {function} Custom click handler — receives (item). Overrides default routing.
  * className     {string}   Extra class names on root element
@@ -29,18 +67,28 @@ export default function MediaCard({
   showGenre = false,
   showBadge = true,
   showMatch = false,
+  showFavBtn = true,
   playIconSize = 22,
   onNavigate,
   disableClick = false,
   className = '',
 }) {
   const navigate = useNavigate();
+  const [favd, setFavd] = useState(() => isFavourite(item?.id));
 
   if (!item) return null;
 
   const handleClick = () => {
     if (onNavigate) return onNavigate(item);
+    // Save current scroll so Home can restore it when Back is pressed
+    sessionStorage.setItem('cinestream_home_scroll', String(window.scrollY));
     navigate(`/tmdb/${item.id}?type=${item.type === 'TV Show' ? 'tv' : 'movie'}`);
+  };
+
+  const handleFavClick = (e) => {
+    e.stopPropagation(); // Don't trigger the card click
+    const nowFavd = toggleFavourite(item);
+    setFavd(nowFavd);
   };
 
   const isWide = size === 'wide';
@@ -76,6 +124,23 @@ export default function MediaCard({
         )}
         {showBadge && item.isNew && (
           <span className="badge badge-new media-card__badge">NEW</span>
+        )}
+
+        {/* ── Favourite Star Button ── */}
+        {showFavBtn && !noClick && (
+          <button
+            className={`media-card__fav-btn ${favd ? 'media-card__fav-btn--active' : ''}`}
+            onClick={handleFavClick}
+            aria-label={favd ? 'Remove from favourites' : 'Add to favourites'}
+            title={favd ? 'Remove from favourites' : 'Add to favourites'}
+          >
+            <Star
+              size={15}
+              fill={favd ? '#f5c518' : 'none'}
+              stroke={favd ? '#f5c518' : 'rgba(255,255,255,0.85)'}
+              strokeWidth={1.8}
+            />
+          </button>
         )}
       </div>
 

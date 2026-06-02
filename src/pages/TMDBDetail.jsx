@@ -157,7 +157,7 @@ export default function TMDBDetail() {
   if (loading) {
     return (
       <div className="tmdb-detail">
-        <Navbar showBack={true} />
+        <Navbar hideNavbar={true} />
         <div className="tmdb-detail__loading">
           <div className="tmdb-detail__spinner" />
           <p>Loading details...</p>
@@ -169,7 +169,7 @@ export default function TMDBDetail() {
   if (!movie || movie.success === false) {
     return (
       <div className="tmdb-detail">
-        <Navbar showBack={true} />
+        <Navbar hideNavbar={true} />
         <div className="tmdb-detail__loading">
           <p>Content not found.</p>
         </div>
@@ -227,7 +227,7 @@ export default function TMDBDetail() {
 
   return (
     <div className="tmdb-detail" ref={topRef}>
-      <Navbar showBack={true} />
+      <Navbar hideNavbar={true} />
 
       {/* Hero backdrop */}
       {backdropUrl && (
@@ -309,6 +309,52 @@ export default function TMDBDetail() {
           <h2>Overview</h2>
           <p>{movie.overview || 'No description available.'}</p>
         </div>
+
+        {/* Cast Section */}
+        {movie.credits?.cast && movie.credits.cast.length > 0 && (
+          <div className="tmdb-detail__cast" style={{ marginTop: '40px', marginBottom: '40px' }}>
+            <h2 style={{ fontSize: '22px', marginBottom: '20px' }}>Cast</h2>
+            <div style={{ display: 'flex', gap: '24px', overflowX: 'auto', paddingBottom: '12px', scrollbarWidth: 'none' }}>
+              {movie.credits.cast.slice(0, 12).map((actor) => (
+                <div
+                  key={actor.id}
+                  onClick={() => navigate(`/person/${actor.id}`)}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '90px', textAlign: 'center', cursor: 'pointer' }}
+                  title={`View ${actor.name}'s profile`}
+                >
+                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', backgroundColor: 'var(--surface-10)', marginBottom: '10px', border: '2px solid rgba(255, 255, 255, 0.08)', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', transition: 'border-color 0.2s, box-shadow 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(229,9,20,0.6)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(229,9,20,0.35)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)'; }}
+                  >
+                    {actor.profile_path ? (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                        alt={actor.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.2s' }}
+                        className="cast-avatar-img"
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', color: 'var(--text-dim)', fontWeight: 'bold' }}>
+                        {actor.name[0]}
+                      </div>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: '#ffffff', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', width: '95px', transition: 'color 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#ff6b6b'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#ffffff'}
+                    title={actor.name}
+                  >{actor.name}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-dim)', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', width: '95px', marginTop: '2px' }} title={actor.character}>{actor.character}</span>
+                </div>
+              ))}
+            </div>
+            <style dangerouslySetInnerHTML={{
+              __html: `
+              .tmdb-detail__cast > div::-webkit-scrollbar { display: none; }
+              .cast-avatar-img:hover { transform: scale(1.08); }
+            `}} />
+          </div>
+        )}
 
         {/* Stream Player */}
         <div className="tmdb-detail__trailer">

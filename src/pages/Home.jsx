@@ -15,6 +15,20 @@ const HERO_IMG_BASE = 'https://image.tmdb.org/t/p/original';
 export default function Home() {
   const navigate = useNavigate();
 
+  // Restore scroll position when returning from SeeAll or a detail page
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem('cinestream_home_scroll');
+    if (savedScroll) {
+      const y = parseInt(savedScroll, 10);
+      sessionStorage.removeItem('cinestream_home_scroll');
+      // Small delay to let the page render before scrolling
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: y, behavior: 'instant' });
+      });
+    }
+  }, []);
+
+
   const [heroSlides, setHeroSlides] = useState([]);
   const [kdrama, setKdrama] = useState([]);
   const [bollywood, setBollywood] = useState([]);
@@ -24,14 +38,37 @@ export default function Home() {
   const [action, setAction] = useState([]);
   const [scifi, setScifi] = useState([]);
   const [punjabi, setPunjabi] = useState([]);
+  const [romance, setRomance] = useState([]);
+
+  // Identify if this is the tayyab4855 account
+  const sessionUser = sessionStorage.getItem('cinestream_user') || '';
+  const isTayyab = sessionUser.toLowerCase() === 'tayyab4855';
 
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
         const userSession = sessionStorage.getItem('cinestream_user') || '';
         const adultEnabled = localStorage.getItem(`cinestream_adult_enabled_${userSession}`) === 'true';
+        const isTayyabUser = userSession.toLowerCase() === 'tayyab4855';
         const adultParam = adultEnabled ? '&include_adult=true' : '&include_adult=false';
         const movieCertParam = adultEnabled ? '' : '&certification_country=US&certification.lte=PG-13';
+
+        // Build parallel fetch list — Romance (genre 10749) only for tayyab4855
+        const fetchList = [
+          fetch(`https://api.themoviedb.org/3/trending/all/day?api_key=${TMDB_KEY}${adultParam}`),
+          fetch(`https://api.themoviedb.org/3/discover/tv?api_key=${TMDB_KEY}&with_original_language=ko&sort_by=popularity.desc${adultParam}`),
+          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_original_language=hi&sort_by=popularity.desc${adultParam}${movieCertParam}`),
+          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_original_language=en&sort_by=popularity.desc${adultParam}${movieCertParam}`),
+          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=16&sort_by=popularity.desc${adultParam}${movieCertParam}`),
+          fetch(`https://api.themoviedb.org/3/discover/tv?api_key=${TMDB_KEY}&with_genres=16&with_original_language=ja&sort_by=popularity.desc${adultParam}`),
+          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=28&sort_by=popularity.desc${adultParam}${movieCertParam}`),
+          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=878&sort_by=popularity.desc${adultParam}${movieCertParam}`),
+          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_original_language=pa&sort_by=popularity.desc${adultParam}${movieCertParam}`),
+          // Romance: always include adult content (genre 10749), only fetched for tayyab4855
+          isTayyabUser && adultEnabled
+            ? fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc&include_adult=true&page=1`)
+            : Promise.resolve(null),
+        ];
 
         const [
           trendingRes,
@@ -42,18 +79,9 @@ export default function Home() {
           animeRes,
           actionRes,
           scifiRes,
-          punjabiRes
-        ] = await Promise.all([
-          fetch(`https://api.themoviedb.org/3/trending/all/day?api_key=${TMDB_KEY}${adultParam}`),
-          fetch(`https://api.themoviedb.org/3/discover/tv?api_key=${TMDB_KEY}&with_original_language=ko&sort_by=popularity.desc${adultParam}`),
-          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_original_language=hi&sort_by=popularity.desc${adultParam}${movieCertParam}`),
-          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_original_language=en&sort_by=popularity.desc${adultParam}${movieCertParam}`),
-          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=16&sort_by=popularity.desc${adultParam}${movieCertParam}`),
-          fetch(`https://api.themoviedb.org/3/discover/tv?api_key=${TMDB_KEY}&with_genres=16&with_original_language=ja&sort_by=popularity.desc${adultParam}`),
-          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=28&sort_by=popularity.desc${adultParam}${movieCertParam}`),
-          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=878&sort_by=popularity.desc${adultParam}${movieCertParam}`),
-          fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_original_language=pa&sort_by=popularity.desc${adultParam}${movieCertParam}`)
-        ]);
+          punjabiRes,
+          romanceRes,
+        ] = await Promise.all(fetchList);
 
         const adultKeywords = ['sex', 'fuck', 'fucked', 'adult', '18+', 'erotic', 'porn', 'nude', 'sexually', 'romance'];
         const containsAdultWord = (text) => {
@@ -81,6 +109,17 @@ export default function Home() {
           isTMDB: true
         })) || [];
 
+        // Format romance — no keyword filtering, keep all adult/18+ content
+        const formatRomance = (results) => (results || []).slice(0, 18).map(m => ({
+          id: m.id,
+          title: m.title || m.name,
+          poster: m.poster_path ? `${IMG_BASE}${m.poster_path}` : null,
+          year: (m.release_date || m.first_air_date || '').split('-')[0],
+          rating: m.vote_average ? m.vote_average.toFixed(1) : null,
+          type: m.media_type === 'tv' || m.name ? 'TV Show' : 'Movie',
+          isTMDB: true
+        }));
+
         const trendingData = await trendingRes.json();
         const kdramaData = await kdramaRes.json();
         const bollywoodData = await bollywoodRes.json();
@@ -90,14 +129,23 @@ export default function Home() {
         const actionData = await actionRes.json();
         const scifiData = await scifiRes.json();
         const punjabiData = await punjabiRes.json();
+        const romanceData = romanceRes ? await romanceRes.json() : null;
 
-        // Format Hero
-        setHeroSlides(trendingData.results?.filter(m => {
+        // Format Hero — when romance/adult is enabled for tayyab4855, mix in some romance hero slides
+        let heroItems = trendingData.results?.filter(m => {
           if (adultEnabled) return true;
           if (m.adult === true) return false;
           if (containsAdultWord(m.title) || containsAdultWord(m.name) || containsAdultWord(m.overview)) return false;
           return true;
-        }).slice(0, 5).map(m => ({
+        }) || [];
+
+        // If tayyab4855 with adult enabled, append romance picks into the hero carousel
+        if (isTayyabUser && adultEnabled && romanceData?.results?.length > 0) {
+          const romanceHeroItems = romanceData.results.slice(0, 3);
+          heroItems = [...romanceHeroItems, ...heroItems].slice(0, 8);
+        }
+
+        setHeroSlides(heroItems.slice(0, 8).map(m => ({
           id: m.id,
           title: m.title || m.name,
           image: m.backdrop_path ? `${HERO_IMG_BASE}${m.backdrop_path}` : `${HERO_IMG_BASE}${m.poster_path}`,
@@ -108,16 +156,23 @@ export default function Home() {
           genres: ['Trending', m.media_type === 'tv' ? 'TV' : 'Movie'],
           description: m.overview,
           isTMDB: true
-        })) || []);
+        })));
 
-        setKdrama(formatTMDB(kdramaData.results, false)); // No keyword filter for Kdrama
-        setBollywood(formatTMDB(bollywoodData.results, false)); // No keyword filter for Bollywood
+        setKdrama(formatTMDB(kdramaData.results, false));
+        setBollywood(formatTMDB(bollywoodData.results, false));
         setHollywood(formatTMDB(hollywoodData.results, true));
         setAnimatedFilm(formatTMDB(animatedData.results, true));
         setAnime(formatTMDB(animeData.results, true));
         setAction(formatTMDB(actionData.results, true));
         setScifi(formatTMDB(scifiData.results, true));
-        setPunjabi(formatTMDB(punjabiData.results, false)); // No keyword filter for Punjabi
+        setPunjabi(formatTMDB(punjabiData.results, false));
+
+        // Romance: only set for tayyab4855 with adult enabled
+        if (isTayyabUser && adultEnabled && romanceData?.results) {
+          setRomance(formatRomance(romanceData.results));
+        } else {
+          setRomance([]);
+        }
 
       } catch (err) {
         console.error("Failed to fetch TMDB home data:", err);
@@ -236,6 +291,16 @@ export default function Home() {
             id="anime"
             title="Anime"
             items={anime}
+            cardProps={{ showRating: true, showYear: true }}
+          />
+        )}
+
+        {/* ── Romance — only for tayyab4855 with adult content enabled ── */}
+        {isTayyab && romance.length > 0 && (
+          <ContentSection
+            id="romance"
+            title="💋 Romance & 18+ Picks"
+            items={romance}
             cardProps={{ showRating: true, showYear: true }}
           />
         )}

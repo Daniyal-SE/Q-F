@@ -1,0 +1,332 @@
+/* ── Cast Detail Page ────────────────────────────────── */
+.cast-detail-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 0 0 80px;
+}
+
+/* Floating Back Button */
+.cast-detail-back-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 15, 20, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(229, 9, 20, 0.3);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s ease;
+  font-family: var(--font-body);
+}
+
+.cast-detail-back-btn:hover {
+  background: rgba(229, 9, 20, 0.25);
+  border-color: rgba(229, 9, 20, 0.6);
+  color: #fff;
+  transform: translateX(-2px);
+  box-shadow: 0 6px 32px rgba(229, 9, 20, 0.25);
+}
+
+/* Loading state */
+.cast-detail-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  color: var(--text-muted);
+  gap: 16px;
+}
+
+.cast-detail-loading .spinner {
+  animation: spin 0.8s linear infinite;
+  color: var(--primary);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Page container */
+.cast-detail-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 100px 6% 0;
+}
+
+/* Profile header layout */
+.cast-profile-header {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 60px;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 40px;
+}
+
+.cast-profile-image-wrap {
+  width: 260px;
+  flex-shrink: 0;
+  aspect-ratio: 2/3;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-surface);
+}
+
+.cast-profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cast-profile-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface);
+  font-size: 80px;
+  font-weight: 800;
+  color: var(--text-dim);
+}
+
+.cast-profile-info {
+  flex-grow: 1;
+  color: var(--text);
+}
+
+.cast-profile-name {
+  font-size: clamp(32px, 4vw, 50px);
+  font-weight: 900;
+  font-family: var(--font-heading);
+  margin: 0 0 12px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.cast-profile-dept {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 24px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.cast-profile-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+.cast-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cast-profile-bio {
+  line-height: 1.7;
+  font-size: 14.5px;
+  color: var(--text-muted);
+}
+
+.cast-profile-bio h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.cast-profile-bio p {
+  white-space: pre-line;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 10px;
+  scrollbar-width: thin;
+}
+
+/* Known For Section */
+.cast-credits-section h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 28px;
+  position: relative;
+  padding-left: 14px;
+}
+
+.cast-credits-section h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+/* 5-column grid for works with same desktop/laptop margins */
+.cast-credits-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 28px 20px;
+}
+
+/* Style cards inside CastDetailPage as unified container boxes (matching See All layout) */
+.cast-credits-grid .media-card {
+  width: 100%;
+  background: #111111;
+  /* Dark card background */
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.cast-credits-grid .media-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8);
+  border-color: rgba(229, 9, 20, 0.4);
+}
+
+.cast-credits-grid .media-card__poster {
+  border-radius: 6px 6px 0 0 !important;
+  width: 100%;
+}
+
+.cast-credits-grid .media-card__info {
+  padding: 14px 12px 16px;
+  background: #111111;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.cast-credits-grid .media-card__title {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 6px;
+  white-space: normal;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cast-credits-grid .media-card__meta {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted, #aaaaaa);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 8px;
+}
+
+.cast-credits-grid .media-card__rating {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 600;
+  color: #f5c518;
+}
+
+.cast-credits-empty {
+  color: var(--text-dim);
+  font-size: 14px;
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 0;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 1100px) {
+  .cast-credits-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cast-detail-container {
+    padding: 90px 5% 0;
+  }
+
+  .cast-profile-header {
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .cast-profile-image-wrap {
+    width: 200px;
+  }
+
+  .cast-profile-meta {
+    justify-content: center;
+  }
+
+  .cast-credits-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px 14px;
+  }
+
+  .cast-profile-bio p {
+    max-height: none;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .cast-detail-container {
+    padding: 85px 4% 0;
+  }
+
+  .cast-credits-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px 10px;
+  }
+
+  .cast-detail-back-btn {
+    top: 14px;
+    left: 14px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+}

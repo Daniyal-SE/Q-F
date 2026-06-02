@@ -8,6 +8,30 @@
   display: flex;
   gap: 8px;
 }
+
+/* ── See All button ──────────────────────────────────── */
+.content-section__see-all {
+  background: rgba(229, 9, 20, 0.12);
+  border: 1px solid rgba(229, 9, 20, 0.35);
+  color: #ff6b6b;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: var(--font-body);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.content-section__see-all:hover {
+  background: rgba(229, 9, 20, 0.28);
+  border-color: rgba(229, 9, 20, 0.6);
+  color: #fff;
+  transform: scale(1.04);
+}
+
 .content-section__nav-btn {
   background: var(--surface-light, rgba(255, 255, 255, 0.1));
   border: none;
@@ -66,8 +90,11 @@
 
 @media (max-width: 768px) {
   .content-section { padding: 24px 0; }
+  .content-section__scroll {
+    gap: 12px;
+  }
   .content-section__scroll .media-card {
-    flex: 0 0 130px;
-    width: 130px;
+    flex: 0 0 calc((100% - 24px) / 3);
+    width: calc((100% - 24px) / 3);
   }
 }
