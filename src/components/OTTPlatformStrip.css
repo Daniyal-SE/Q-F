@@ -1,7 +1,7 @@
 .ott-strip-container {
   width: 92%;
   max-width: 1400px;
-  margin: -20px auto 30px;
+  margin: 20px auto 30px;
   position: relative;
   z-index: 10;
 }

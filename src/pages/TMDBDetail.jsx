@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './TMDBDetail.css';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Play, Star, Clock, Calendar, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Star, Clock, Calendar, Globe, ChevronLeft, ChevronRight, Server, X } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import CustomPlayer from '../components/CustomPlayer';
 
 const TMDB_KEY = '1fa448de74c5dac88e0d31d99c7e916d';
 const IMG_BASE = 'https://image.tmdb.org/t/p/';
@@ -25,6 +26,9 @@ export default function TMDBDetail() {
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [server, setServer] = useState('vidsrc');
+  const [showServers, setShowServers] = useState(false);
+  const [customStreamData, setCustomStreamData] = useState(null);
+  const [isFetchingCustom, setIsFetchingCustom] = useState(false);
   const topRef = useRef(null);
   const epRowRef = useRef(null);
   const watchSecondsRef = useRef(0);
@@ -78,28 +82,63 @@ export default function TMDBDetail() {
     const fetchAll = async () => {
       try {
         let currentMediaType = typeParam === 'tv' ? 'tv' : 'movie';
-        let detailRes = await fetch(`https://api.themoviedb.org/3/${currentMediaType}/${id}?api_key=${TMDB_KEY}&language=en-US&append_to_response=credits`);
-        let detail = await detailRes.json();
+        let detail = null;
 
-        // Fallback logic if we guessed wrong and user didn't provide a strict type parameter
-        if ((!detail || detail.success === false) && !typeParam) {
-          currentMediaType = 'tv';
-          detailRes = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_KEY}&language=en-US&append_to_response=credits`);
+        // If ID starts with 'tt', it's IMDB. We can fetch from RapidAPI or fallback to TMDB find.
+        if (id.startsWith('tt')) {
+          try {
+            const options = {
+              method: 'GET',
+              headers: {
+                'x-rapidapi-key': 'b7722b0064msh7cd5086cff01924p13b142jsna013f6e6bdde',
+                'x-rapidapi-host': 'imdb236.p.rapidapi.com'
+              }
+            };
+            // For now, TMDB find is much more reliable to get rich TMDB metadata using IMDB id.
+            // RapidAPI title detail endpoint: `https://imdb236.p.rapidapi.com/imdb/${id}`
+            const imdbRes = await fetch(`https://api.themoviedb.org/3/find/${id}?api_key=${TMDB_KEY}&external_source=imdb_id`);
+            const imdbData = await imdbRes.json();
+            
+            if (imdbData.movie_results?.length > 0) {
+              currentMediaType = 'movie';
+              const tmdbId = imdbData.movie_results[0].id;
+              const dRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${TMDB_KEY}&language=en-US&append_to_response=credits`);
+              detail = await dRes.json();
+            } else if (imdbData.tv_results?.length > 0) {
+              currentMediaType = 'tv';
+              const tmdbId = imdbData.tv_results[0].id;
+              const dRes = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${TMDB_KEY}&language=en-US&append_to_response=credits`);
+              detail = await dRes.json();
+            }
+          } catch(e) { console.error("IMDB fetch error", e); }
+        }
+
+        if (!detail) {
+          let detailRes = await fetch(`https://api.themoviedb.org/3/${currentMediaType}/${id}?api_key=${TMDB_KEY}&language=en-US&append_to_response=credits`);
           detail = await detailRes.json();
+
+          // Fallback logic if we guessed wrong and user didn't provide a strict type parameter
+          if ((!detail || detail.success === false) && !typeParam) {
+            currentMediaType = 'tv';
+            detailRes = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_KEY}&language=en-US&append_to_response=credits`);
+            detail = await detailRes.json();
+          }
         }
 
         const userSession = sessionStorage.getItem('cinestream_user') || '';
-        const adultParam = localStorage.getItem(`cinestream_adult_enabled_${userSession}`) === 'true' ? '&include_adult=true' : '&include_adult=false';
+        const adultEnabled = localStorage.getItem(`cinestream_adult_enabled_${userSession}`) === 'true';
+        const adultParam = adultEnabled ? '&include_adult=true' : '&include_adult=false';
 
+        const realId = detail.id || id;
         const [recRes, imgRes] = await Promise.all([
-          fetch(`https://api.themoviedb.org/3/${currentMediaType}/${id}/recommendations?api_key=${TMDB_KEY}&language=en-US&page=1${adultParam}`),
-          fetch(`https://api.themoviedb.org/3/${currentMediaType}/${id}/images?api_key=${TMDB_KEY}`)
+          fetch(`https://api.themoviedb.org/3/${currentMediaType}/${realId}/recommendations?api_key=${TMDB_KEY}&language=en-US&page=1${adultParam}`),
+          fetch(`https://api.themoviedb.org/3/${currentMediaType}/${realId}/images?api_key=${TMDB_KEY}`)
         ]);
 
         const rec = await recRes.json();
         const imgData = await imgRes.json();
 
-        setMovie(detail);
+        setMovie({ ...detail, displayId: id }); // keep original ID (might be IMDB) for iframe
         setMediaType(currentMediaType);
 
         const adultKeywords = ['sex', 'fuck', 'fucked', 'adult', '18+', 'erotic', 'porn', 'nude', 'sexually', 'romance'];
@@ -129,10 +168,10 @@ export default function TMDBDetail() {
   }, [id, typeParam]);
 
   useEffect(() => {
-    if (mediaType === 'tv' && movie) {
+    if (mediaType === 'tv' && movie && movie.id) {
       const fetchEpisodes = async () => {
         try {
-          const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}?api_key=${TMDB_KEY}&language=en-US`);
+          const res = await fetch(`https://api.themoviedb.org/3/tv/${movie.id}/season/${season}?api_key=${TMDB_KEY}&language=en-US`);
           const data = await res.json();
           setEpisodesList(data.episodes || []);
 
@@ -199,27 +238,61 @@ export default function TMDBDetail() {
 
   // Determine iframe source based on selected server
   const getIframeSrc = () => {
+    const playId = movie.displayId || id;
     if (server === 'vidsrc') {
       return mediaType === 'tv'
-        ? `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
-        : `https://vidsrc.me/embed/movie?tmdb=${id}`;
+        ? `https://vidsrc.me/embed/tv?tmdb=${playId}&season=${season}&episode=${episode}`
+        : `https://vidsrc.me/embed/movie?tmdb=${playId}`;
+    }
+    if (server === 'vidsrcto') {
+      return mediaType === 'tv'
+        ? `https://vidsrc.to/embed/tv/${playId}/${season}/${episode}`
+        : `https://vidsrc.to/embed/movie/${playId}`;
     }
     if (server === 'vidsrcpro') {
       return mediaType === 'tv'
-        ? `https://vidsrc.in/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
-        : `https://vidsrc.in/embed/movie?tmdb=${id}`;
+        ? `https://vidsrc.pro/embed/tv/${playId}/${season}/${episode}`
+        : `https://vidsrc.pro/embed/movie/${playId}`;
     }
-    if (server === 'autoembed') {
+    if (server === 'embedsu') {
       return mediaType === 'tv'
-        ? `https://vidsrc.pm/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
-        : `https://vidsrc.pm/embed/movie?tmdb=${id}`;
+        ? `https://embed.su/embed/tv/${playId}/${season}/${episode}`
+        : `https://embed.su/embed/movie/${playId}`;
+    }
+    if (server === 'multiembed') {
+      return mediaType === 'tv'
+        ? `https://multiembed.mov/?video_id=${playId}&tmdb=1&s=${season}&e=${episode}`
+        : `https://multiembed.mov/?video_id=${playId}&tmdb=1`;
+    }
+    if (server === 'vidsrcxyz') {
+      return mediaType === 'tv'
+        ? `https://vidsrc.xyz/embed/tv/${playId}/${season}/${episode}`
+        : `https://vidsrc.xyz/embed/movie/${playId}`;
     }
     if (server === 'smashystream') {
       return mediaType === 'tv'
-        ? `https://vidsrc.net/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`
-        : `https://vidsrc.net/embed/movie?tmdb=${id}`;
+        ? `https://player.smashy.stream/tv/${playId}?s=${season}&e=${episode}`
+        : `https://player.smashy.stream/movie/${playId}`;
+    }
+    if (server === '2embed') {
+      return mediaType === 'tv'
+        ? `https://www.2embed.cc/embedtv/${playId}&s=${season}&e=${episode}`
+        : `https://www.2embed.cc/embed/${playId}`;
+    }
+    if (server === 'superembed') {
+      return mediaType === 'tv'
+        ? `https://superembed.stream/embed?tmdb_id=${playId}&type=tv&season=${season}&episode=${episode}`
+        : `https://superembed.stream/embed?tmdb_id=${playId}&type=movie`;
     }
     return '';
+  };
+
+  const handleServerChange = (srv) => {
+    setServer(srv);
+    setShowServers(false);
+    setCustomStreamData(null);
+    // All servers now use iframes — no special fetch needed
+    if (!playing) setPlaying(true);
   };
 
   const scrollLeft = () => epRowRef.current?.scrollBy({ left: -320, behavior: 'smooth' });
@@ -228,6 +301,38 @@ export default function TMDBDetail() {
   return (
     <div className="tmdb-detail" ref={topRef}>
       <Navbar hideNavbar={true} />
+
+      {/* Floating Back Button — always on top, never blocked by iframe */}
+      <button
+        onClick={() => navigate(-1)}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '10px 18px',
+          borderRadius: '9999px',
+          background: 'rgba(0,0,0,0.75)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          color: '#fff',
+          fontSize: '14px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+          transition: 'all 0.2s ease',
+          pointerEvents: 'all'
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(229,9,20,0.85)'; e.currentTarget.style.borderColor = 'rgba(229,9,20,0.5)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.75)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+        aria-label="Go Back"
+      >
+        &#8592; Back
+      </button>
 
       {/* Hero backdrop */}
       {backdropUrl && (
@@ -374,15 +479,63 @@ export default function TMDBDetail() {
             </div>
           )}
 
-          {playing && (
-            <div className="server-switcher" style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-              <span style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'flex', alignItems: 'center', marginRight: '8px' }}>Servers:</span>
-              <button onClick={() => setServer('vidsrc')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'vidsrc' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 1 (Fast)</button>
-              <button onClick={() => setServer('autoembed')} style={{ padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '13px', background: server === 'autoembed' ? 'var(--primary)' : 'var(--surface-10)', color: 'white' }}>Server 2 (Alt)</button>
-            </div>
-          )}
+          <div style={{ marginBottom: '16px', position: 'relative' }}>
+            <button 
+              onClick={() => setShowServers(true)} 
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--primary)', background: 'rgba(229,9,20,0.1)', color: 'white', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}
+            >
+              <Server size={18} color="var(--primary)" /> Change Server
+            </button>
 
-          <div className="trailer-player">
+            {showServers && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, background: 'var(--bg-surface)', border: '1px solid var(--outline)', borderRadius: '12px', padding: '16px', width: '100%', maxWidth: '600px', marginTop: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px' }}>Select Streaming Server</h3>
+                  <button onClick={() => setShowServers(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px' }}>
+                  {[
+                    { id: 'vidsrc',      label: 'VidSrc.me',     badge: '★ Fast' },
+                    { id: 'vidsrcto',    label: 'VidSrc.to',     badge: '' },
+                    { id: 'vidsrcpro',   label: 'VidSrc.pro',    badge: '' },
+                    { id: 'embedsu',     label: 'Embed.su',      badge: '★ HD' },
+                    { id: 'multiembed',  label: 'MultiEmbed',    badge: '' },
+                    { id: 'vidsrcxyz',   label: 'VidSrc.xyz',    badge: '' },
+                    { id: 'smashystream',label: 'SmashyStream',  badge: '' },
+                    { id: '2embed',      label: '2Embed',        badge: '' },
+                    { id: 'superembed',  label: 'SuperEmbed',    badge: '' },
+                  ].map(({ id: srv, label, badge }) => (
+                    <button 
+                      key={srv}
+                      onClick={() => handleServerChange(srv)} 
+                      style={{ padding: '10px', borderRadius: '6px', border: '1px solid', borderColor: server === srv ? 'var(--primary)' : 'var(--surface-10)', background: server === srv ? 'rgba(229,9,20,0.2)' : 'var(--surface-10)', color: 'white', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s', textAlign: 'center' }}
+                      onMouseEnter={e => { if(server!==srv) e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
+                      onMouseLeave={e => { if(server!==srv) e.currentTarget.style.borderColor = 'var(--surface-10)'; }}
+                    >
+                      <div>{label}</div>
+                      {badge && <div style={{ fontSize: '10px', color: '#f5c518', marginTop: '3px' }}>{badge}</div>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="trailer-player" style={{ position: 'relative' }}>
+            {/* Iframe click-recapture overlay: appears briefly after click in iframe to restore page focus */}
+            {playing && !customStreamData && !isFetchingCustom && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0, left: 0, right: 0,
+                  height: '50px',
+                  zIndex: 10,
+                  background: 'transparent',
+                  cursor: 'default'
+                }}
+                title="Click here to restore page controls"
+              />
+            )}
             {!playing ? (
               <>
                 {backdropUrl && (
@@ -401,6 +554,12 @@ export default function TMDBDetail() {
                   <Play size={28} fill="white" strokeWidth={0} />
                 </button>
               </>
+            ) : isFetchingCustom ? (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', color: 'white' }}>
+                 Loading Custom Stream...
+              </div>
+            ) : customStreamData ? (
+              <CustomPlayer src={customStreamData.src} type={customStreamData.type} poster={backdropUrl} />
             ) : (
               <iframe
                 width="100%"

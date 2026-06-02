@@ -104,7 +104,7 @@ export default function ContentSection({
 
         {/* Cards */}
         {layout === 'scroll' ? (
-          <div className="content-section__scroll" ref={scrollRef} style={{ '--card-w': cardWidth }}>
+          <div className="content-section__scroll" style={{ '--card-w': cardWidth }}>
             {items.map((item) => (
               <MediaCard
                 key={item.id}

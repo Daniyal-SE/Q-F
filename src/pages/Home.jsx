@@ -90,6 +90,10 @@ export default function Home() {
           return adultKeywords.some(word => lower.includes(word));
         };
 
+        const romanceRes = isTayyab 
+          ? await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc${unrestrictedRomance ? '&include_adult=true' : '&include_adult=false'}`)
+          : null;
+
         const formatTMDB = (results, applyKeywordFilter = true) => results?.filter(m => {
           if (adultEnabled) return true;
           if (m.adult === true) return false;
@@ -174,13 +178,38 @@ export default function Home() {
           setRomance([]);
         }
 
+        if (isTayyab && romanceRes) {
+          const romanceData = await romanceRes.json();
+          // Filter out adult content only if unrestricted is false
+          setRomance((romanceData.results || []).filter(m => {
+             if (unrestrictedRomance) return true;
+             if (m.adult === true) return false;
+             if (containsAdultWord(m.title) || containsAdultWord(m.overview)) return false;
+             return true;
+          }).slice(0, 18).map(m => ({
+            id: m.id,
+            title: m.title || m.name,
+            poster: m.poster_path ? `${IMG_BASE}${m.poster_path}` : null,
+            year: (m.release_date || m.first_air_date || '').split('-')[0],
+            rating: m.vote_average ? m.vote_average.toFixed(1) : null,
+            type: 'Movie',
+            isTMDB: true
+          })));
+        }
+
       } catch (err) {
         console.error("Failed to fetch TMDB home data:", err);
       }
     };
 
     fetchHomeData();
-  }, []);
+  }, [isTayyab, unrestrictedRomance]);
+
+  const toggleRomanceUnrestricted = () => {
+    const newVal = !unrestrictedRomance;
+    setUnrestrictedRomance(newVal);
+    localStorage.setItem('cinestream_romance_unrestricted', newVal);
+  };
 
   return (
     <div className="home">
