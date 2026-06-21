@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_ngkcDb164quq8JruhWqLm18sNdMJ",
+  "orgId": "team_UW7c06KmEGo3tXShRgTU9V41",
+  "projectName": "q-f",
+  "settings": {
+    "createdAt": 1779580300791,
+    "framework": null,
+    "devCommand": null,
+    "installCommand": "npm install",
+    "buildCommand": "npm run build ",
+    "outputDirectory": "dist",
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}
