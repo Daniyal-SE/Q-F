@@ -40,11 +40,8 @@ const SettingsScreen = () => {
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_OPTIONS[0].id);
   const [editInputValue, setEditInputValue] = useState(username);
   const [streakData, setStreakData] = useState<StreakData | null>(null);
-  const [userAuth, setUserAuth] = useState<{ role: string; name?: string } | null>(null);
-  const [motivators, setMotivators] = useState<{ id: string; text: string; emoji: string }[]>([]);
-  const [newMotivatorText, setNewMotivatorText] = useState("");
-  const [newMotivatorEmoji, setNewMotivatorEmoji] = useState("💪");
-  const EMOJI_OPTIONS = ["💪", "❤️", "👨‍👩‍👧", "⚡", "💰", "🏆", "🌟", "🔥", "🧠", "🎯"];
+  const [userAuth, setUserAuth] = useState<{ role: string; email?: string; name?: string } | null>(null);
+
 
   // Load user profile and streak data
   useEffect(() => {
@@ -66,12 +63,7 @@ const SettingsScreen = () => {
       setUserAuth(JSON.parse(authSaved));
     }
 
-    const motivatorsSaved = localStorage.getItem("motivators");
-    setMotivators(motivatorsSaved ? JSON.parse(motivatorsSaved) : [
-      { id: "1", text: "My Family", emoji: "👨‍👩‍👧" },
-      { id: "2", text: "Feel Energetic", emoji: "⚡" },
-      { id: "3", text: "Save Money", emoji: "💰" },
-    ]);
+
   }, []);
 
   // Save profile to localStorage
@@ -101,22 +93,7 @@ const SettingsScreen = () => {
     );
   };
 
-  const handleAddMotivator = () => {
-    if (!newMotivatorText.trim()) return;
-    const updated = [
-      ...motivators,
-      { id: Date.now().toString(), text: newMotivatorText.trim(), emoji: newMotivatorEmoji },
-    ];
-    setMotivators(updated);
-    localStorage.setItem("motivators", JSON.stringify(updated));
-    setNewMotivatorText("");
-  };
 
-  const handleRemoveMotivator = (id: string) => {
-    const updated = motivators.filter((m) => m.id !== id);
-    setMotivators(updated);
-    localStorage.setItem("motivators", JSON.stringify(updated));
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("userAuth");
@@ -255,30 +232,7 @@ const SettingsScreen = () => {
           </div>
         )}
 
-        {/* Motivators Section */}
-        <div className="mb-8">
-          <h3 className="text-xs font-black text-kinetic-on-surface-variant tracking-[0.2em] uppercase mb-4">My Motivators</h3>
-          <div className="bg-kinetic-surface-container-low rounded-xl p-4 space-y-3">
-            {motivators.length === 0 ? (
-              <p className="text-kinetic-on-surface-variant text-sm text-center py-3 opacity-60">No motivators yet.</p>
-            ) : (
-              motivators.map((m) => (
-                <div key={m.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-kinetic-surface-container">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{m.emoji}</span>
-                    <span className="font-bold text-kinetic-on-surface text-sm">{m.text}</span>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveMotivator(m.id)}
-                    className="text-kinetic-on-surface-variant hover:text-red-400 transition-colors p-1"
-                  >
-                    <span className="material-symbols-outlined text-lg">close</span>
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+
         <div className="mb-6 sm:mb-10">
           <h3 className="text-xs font-black text-kinetic-on-surface-variant tracking-[0.2em] uppercase mb-4">
             Choose Your Avatar
@@ -383,11 +337,32 @@ const SettingsScreen = () => {
         </div>
 
         {/* Dangerous Actions */}
-        <div className="mb-4">
-          <h3 className="text-xs font-black text-secondary tracking-[0.2em] uppercase">
-            Account Security
-          </h3>
-        </div>
+        {userAuth?.email?.toLowerCase() === "jugnuzulfi4855@gmail.com" && (
+          <>
+            <div className="mb-4">
+              <h3 className="text-xs font-black text-secondary tracking-[0.2em] uppercase">
+                Account Security & Database
+              </h3>
+            </div>
+            <button 
+              onClick={() => navigate("/admin")}
+              className="w-full group bg-kinetic-surface-container hover:bg-[#4ade80]/10 transition-all p-5 rounded-xl flex items-center justify-between mb-4 cursor-pointer"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-[#4ade80]/10 flex items-center justify-center text-[#4ade80]">
+                  <span className="material-symbols-outlined">database</span>
+                </div>
+                <span className="font-bold text-[#4ade80] tracking-wide">
+                  User Database Control (SQL View)
+                </span>
+              </div>
+              <span className="material-symbols-outlined text-[#4ade80] group-hover:translate-x-1 transition-transform">
+                chevron_right
+              </span>
+            </button>
+          </>
+        )}
+
         <button className="w-full group bg-kinetic-surface-container hover:bg-secondary/10 transition-all p-5 rounded-xl flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">

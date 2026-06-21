@@ -114,11 +114,11 @@ const CalorieDetailBreakdown: React.FC = () => {
       className="bg-[#0c1321] text-[#dce2f6] selection:bg-[#6bfb9a] selection:text-[#003919]"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
-      <header className="w-full top-0 z-50 sticky bg-[#0c1321] flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4">
+      <header className="w-full top-0 z-50 sticky bg-[#0c1321]/90 backdrop-blur-md flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-white/5">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-1 text-[#4ade80] hover:opacity-80 transition-opacity"
+            className="p-1 text-[#4ade80] hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer"
           >
             <span className="material-symbols-outlined text-xl">arrow_back</span>
           </button>
@@ -264,58 +264,14 @@ const CalorieDetailBreakdown: React.FC = () => {
         </div>
 
         {/* History Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10">
-          {/* Food History */}
-          <div>
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-bold text-[#dce2f6]" style={{ fontFamily: "'Manrope', sans-serif" }}>Food History</h3>
-              <button
-                onClick={() => navigate("/food-analysis")}
-                className="text-[#6bfb9a] text-xs font-bold uppercase tracking-widest hover:underline"
-              >
-                + Add
-              </button>
-            </div>
-            <div className="space-y-3">
-              {foodEntries.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 bg-[#19202e] rounded-xl gap-3 opacity-60">
-                  <span className="material-symbols-outlined text-4xl text-[#4ade80]">no_meals</span>
-                  <p className="text-[#bccabb] text-sm font-medium">No meals logged today</p>
-                  <button onClick={() => navigate("/food-analysis")} className="text-[#4ade80] text-xs font-bold uppercase tracking-widest border border-[#4ade80]/30 px-4 py-2 rounded-full hover:bg-[#4ade80]/10 transition">
-                    Scan Food
-                  </button>
-                </div>
-              ) : (
-                foodEntries.map((entry) => (
-                  <div key={entry.id} className="flex items-center justify-between p-4 bg-[#19202e] rounded-xl hover:bg-[#1e2639] transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#2e3544] flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined text-[#6bfb9a] text-lg">
-                          {MEAL_ICONS[entry.mealType?.toLowerCase() || "default"] || "restaurant"}
-                        </span>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-[#dce2f6] text-sm leading-tight">{entry.name}</h4>
-                        <p className="text-xs text-[#bccabb] capitalize">{entry.mealType || "Meal"}{entry.time ? ` • ${entry.time}` : ""}</p>
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <span className="text-base font-extrabold text-[#dce2f6]" style={{ fontFamily: "'Manrope', sans-serif" }}>{entry.calories}</span>
-                      <span className="text-[10px] font-bold text-[#bccabb] uppercase ml-1">kcal</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
+        <div>
           {/* Exercise Activity */}
           <div>
-            <div className="flex justify-between items-center mb-5">
+            <div className="flex justify-between items-center mb-5 border-b border-white/5 pb-2">
               <h3 className="text-xl font-bold text-[#dce2f6]" style={{ fontFamily: "'Manrope', sans-serif" }}>Exercise Activity</h3>
               <button
                 onClick={() => navigate("/exercise-tracker")}
-                className="text-[#a4c9ff] text-xs font-bold uppercase tracking-widest hover:underline"
+                className="text-[#a4c9ff] text-xs font-bold uppercase tracking-widest hover:underline bg-transparent border-none cursor-pointer"
               >
                 + Log
               </button>

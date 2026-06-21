@@ -9,13 +9,11 @@ import GoalSelection from "./pages/GoalSelection";
 import PhysicalStats from "./pages/PhysicalStats";
 import DifficultySelection from "./pages/DifficultySelection";
 import Dashboard from "./pages/Dashboard";
-import FoodAnalysis from "./pages/FoodAnalysis";
 import Analytics from "./pages/Analytics";
 import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 import CravingControl from "./pages/CravingControl";
 import CravingActive from "./pages/CravingActive";
-import CravingDefeat from "./pages/CravingDefeat";
 import CravingDefeated2 from "./pages/CravingDefeated2";
 import NotificationSamples from "./pages/NotificationSamples";
 import PremiumUpgrade from "./pages/PremiumUpgrade";
@@ -26,7 +24,8 @@ import AiFoodScanner from "./pages/Ai-Food-Scanner";
 import AuthOptions from "./pages/AuthOptions";
 import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
-
+import AdminControl from "./pages/AdminControl";
+import FoodHistory from "./pages/FoodHistory";
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
@@ -42,6 +41,7 @@ const App = () => (
           <Route path="/auth" element={<AuthOptions />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/admin" element={<AdminControl />} />
           <Route path="/onboarding/gender" element={<GenderSelection />} />
           <Route path="/onboarding/stats" element={<PhysicalStats />} />
           <Route path="/welcome" element={<WelcomeScreen />} />
@@ -62,6 +62,7 @@ const App = () => (
           <Route path="/exercise-tracker" element={<ExerciseTracker />} />
           <Route path="/calorie-detail-breakdown" element={<CalorieDetailBreakdown />} />
           <Route path="/ai-food-scanner" element={<AiFoodScanner />} />
+          <Route path="/food-history" element={<FoodHistory />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

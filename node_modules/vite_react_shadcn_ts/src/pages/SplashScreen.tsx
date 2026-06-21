@@ -7,7 +7,25 @@ const SplashScreen = () => {
 
   useEffect(() => {
     setLoaded(true);
-    const timer = setTimeout(() => navigate("/onboarding/gender"), 3000);
+    
+    // Check if the user is registered or logged in
+    const authSaved = localStorage.getItem("userAuth");
+    let targetPath = "/auth";
+    
+    if (authSaved) {
+      try {
+        const auth = JSON.parse(authSaved);
+        if (auth.role === "user") {
+          targetPath = "/dashboard";
+        } else if (auth.role === "guest") {
+          targetPath = "/ai-food-scanner";
+        }
+      } catch (e) {
+        console.error("Error parsing userAuth in SplashScreen:", e);
+      }
+    }
+
+    const timer = setTimeout(() => navigate(targetPath), 3000);
     return () => clearTimeout(timer);
   }, [navigate]);
 

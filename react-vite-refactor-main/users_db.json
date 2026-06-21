@@ -1,0 +1,18 @@
+[
+  {
+    "id": "6a37ce9ec2e94ddcf70ddc3d",
+    "username": "testuser",
+    "email": "testuser@example.com",
+    "password": "password123",
+    "passwordHash": "$2b$10$0KgE8Hc7oUWxHsfsBhVjte2YdvNvGXGadLCNWfsqrCklJbIbEdUjq",
+    "createdAt": "2026-06-21T11:44:30.868Z"
+  },
+  {
+    "id": "6a37e9bf4d4ca2379774b49b",
+    "username": "Admin Zulfi",
+    "email": "jugnuzulfi4855@gmail.com",
+    "password": "jugnu123@",
+    "passwordHash": "$2b$10$kfVW56jOY01I/xVeAX1yX..BNXHbcVaRlSP71FIRN3cu96cPrs4cK",
+    "createdAt": "2026-06-21T13:40:15.599Z"
+  }
+]

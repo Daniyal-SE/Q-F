@@ -6,8 +6,9 @@ const SignIn: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSignIn = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -16,16 +17,28 @@ const SignIn: React.FC = () => {
       return;
     }
 
-    // Save user details to localStorage as a Registered User
-    const userAuth = {
-      email,
-      username: "Disciplined User",
-      role: "user",
-    };
-    localStorage.setItem("userAuth", JSON.stringify(userAuth));
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // Also populate default profile if not exists
-    if (!localStorage.getItem("userProfile")) {
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid credentials.");
+      }
+
+      // Save user details to localStorage as a Registered User
+      const userAuth = {
+        email: data.user.email,
+        username: data.user.username,
+        role: data.user.role,
+      };
+      localStorage.setItem("userAuth", JSON.stringify(userAuth));
+
+      // Also populate default profile if not exists
       localStorage.setItem(
         "userProfile",
         JSON.stringify({
@@ -33,35 +46,46 @@ const SignIn: React.FC = () => {
           avatar: "avatar1",
         })
       );
-    }
 
-    // Initial streak data if not started
-    if (!localStorage.getItem("streakData")) {
-      localStorage.setItem(
-        "streakData",
-        JSON.stringify({
-          startTime: null,
-          elapsedTime: 0,
-          totalDays: 0,
-          precision: null,
-          customPrecision: "",
-          plan: "student",
-          notificationSent: false,
-          preNotificationSent: false,
-        })
-      );
-    }
+      // Initial streak data if not started
+      if (!localStorage.getItem("streakData")) {
+        localStorage.setItem(
+          "streakData",
+          JSON.stringify({
+            startTime: null,
+            elapsedTime: 0,
+            totalDays: 0,
+            precision: null,
+            customPrecision: "",
+            plan: "student",
+            notificationSent: false,
+            preNotificationSent: false,
+          })
+        );
+      }
 
-    alert("Signed in successfully! 💪");
-    navigate("/dashboard");
+      alert("Signed in successfully! 💪");
+      navigate("/dashboard");
+    } catch (err) {
+      const error = err as Error;
+      setErrorMsg(error.message || "Failed to connect to authentication server. Make sure MongoDB and backend are running.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div
-      className="bg-[#0c1321] text-[#dce2f6] min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
+      className="bg-[#050b14] text-[#dce2f6] min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden grid-bg"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
       <style>{`
+        .grid-bg {
+          background-image: 
+            linear-gradient(rgba(74, 222, 128, 0.04) 1.5px, transparent 1.5px),
+            linear-gradient(90deg, rgba(74, 222, 128, 0.04) 1.5px, transparent 1.5px);
+          background-size: 32px 32px;
+        }
         @keyframes borderPulse {
           0%, 100% {
             border-color: rgba(74, 222, 128, 0.15);
@@ -75,35 +99,40 @@ const SignIn: React.FC = () => {
         .animated-box-border {
           animation: borderPulse 4s ease-in-out infinite;
         }
+        .text-neon-glow {
+          text-shadow: 0 0 12px rgba(74, 222, 128, 0.5);
+        }
       `}</style>
 
       {/* Visual background glows */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#4ade80]/5 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#3B82F6]/5 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2" />
+      <div className="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-[#4ade80]/3 blur-[140px] rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 
-      <div className="w-full max-w-md bg-[#121A2B] rounded-3xl p-6 sm:p-10 border border-white/5 shadow-2xl relative z-10 space-y-6 animate-in fade-in duration-500 animated-box-border">
+      <div className="w-full max-w-sm bg-[#0e1622] rounded-[24px] p-6 sm:p-8 border border-white/5 shadow-2xl relative z-10 space-y-6 sm:space-y-8 animate-in fade-in duration-500 animated-box-border">
 
         {/* Back navigation button */}
         <button
           onClick={() => navigate("/auth")}
-          className="flex items-center gap-1 text-[#4ade80] hover:opacity-80 transition-opacity text-xs font-bold uppercase tracking-wider"
+          className="flex items-center gap-1 text-[#4ade80] hover:opacity-80 transition-opacity text-xs font-bold uppercase tracking-wider bg-transparent border-none cursor-pointer"
         >
           <span className="material-symbols-outlined text-sm font-bold">arrow_back</span>
           Back
         </button>
 
         {/* Brand Header */}
-        <div className="text-center space-y-1">
+        <div className="text-center space-y-2">
           <h1
-            className="font-black tracking-tighter text-2xl sm:text-3xl text-[#dce2f6] uppercase"
+            className="font-black tracking-tighter text-4xl text-[#00FF87] uppercase text-neon-glow"
             style={{ fontFamily: "'Manrope', sans-serif" }}
           >
             SIGN IN
           </h1>
-          <p className="text-[#bccabb] text-xs font-bold uppercase tracking-widest">
+          <p className="text-[#64748b] text-[10px] font-black uppercase tracking-[0.2em]">
             Welcome back to KINETIC
           </p>
         </div>
+
+        {/* Separator line */}
+        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
 
         {/* Error Banner */}
         {errorMsg && (
@@ -114,7 +143,7 @@ const SignIn: React.FC = () => {
         )}
 
         {/* Input Form */}
-        <form onSubmit={handleSignIn} className="space-y-4">
+        <form onSubmit={handleSignIn} className="space-y-5">
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8] block">
               Email Address
@@ -126,6 +155,7 @@ const SignIn: React.FC = () => {
               placeholder="name@example.com"
               className="w-full bg-[#1b253b] border border-white/5 rounded-xl px-4 py-3.5 text-sm text-[#dce2f6] placeholder-slate-500 focus:outline-none focus:border-[#4ade80] transition-colors"
               required
+              disabled={loading}
             />
           </div>
 
@@ -140,14 +170,16 @@ const SignIn: React.FC = () => {
               placeholder="••••••••"
               className="w-full bg-[#1b253b] border border-white/5 rounded-xl px-4 py-3.5 text-sm text-[#dce2f6] placeholder-slate-500 focus:outline-none focus:border-[#4ade80] transition-colors"
               required
+              disabled={loading}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-4 rounded-xl bg-gradient-to-r from-[#6bfb9a] to-[#4ade80] text-[#003919] font-black text-sm uppercase tracking-widest shadow-lg shadow-[#4ade80]/10 hover:scale-[1.01] active:scale-95 transition-all pt-4 block"
+            disabled={loading}
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#6bfb9a] to-[#4ade80] text-[#003919] font-black text-xs uppercase tracking-widest shadow-lg shadow-[#4ade80]/10 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            Sign In
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
 
@@ -156,7 +188,7 @@ const SignIn: React.FC = () => {
             Don't have an account?{" "}
             <button
               onClick={() => navigate("/register")}
-              className="text-[#4ade80] font-bold hover:underline"
+              className="text-[#4ade80] font-bold hover:underline bg-transparent border-none cursor-pointer"
             >
               Register Here
             </button>
