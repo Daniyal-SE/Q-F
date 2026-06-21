@@ -4,6 +4,11 @@
       "appId": "c50b9832",
       "root": "react-vite-refactor-main",
       "androidPath": "react-vite-refactor-main/android"
+    },
+    {
+      "appId": "809b64f0",
+      "root": "react-vite-refactor-main",
+      "androidPath": "react-vite-refactor-main/android"
     }
   ]
 }
