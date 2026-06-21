@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getApiUrl } from "@/lib/apiUrl";
 
 interface UserRecord {
   id: string;
@@ -32,7 +33,7 @@ const AdminControl: React.FC = () => {
     setLoading(true);
     setErrorMsg("");
     try {
-      const response = await fetch("/api/admin/users", {
+      const response = await fetch(getApiUrl("/api/admin/users"), {
         headers: {
           "x-admin-email": getAdminEmail()
         }
@@ -73,7 +74,7 @@ const AdminControl: React.FC = () => {
 
     setSaving(true);
     try {
-      const response = await fetch("/api/admin/users/update", {
+      const response = await fetch(getApiUrl("/api/admin/users/update"), {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -106,7 +107,7 @@ const AdminControl: React.FC = () => {
   const handleDeleteUser = async (id: string, username: string) => {
     if (window.confirm(`Are you sure you want to permanently DELETE user "${username}"? This will erase them from MongoDB and users_db.json! 🚨`)) {
       try {
-        const response = await fetch("/api/admin/users/delete", {
+        const response = await fetch(getApiUrl("/api/admin/users/delete"), {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",

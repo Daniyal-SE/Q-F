@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getApiUrl } from "@/lib/apiUrl";
 
 const SignIn: React.FC = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const SignIn: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("/api/auth/signin", {
+      const response = await fetch(getApiUrl("/api/auth/signin"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
