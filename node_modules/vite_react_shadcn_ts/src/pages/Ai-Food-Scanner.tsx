@@ -23,26 +23,10 @@ interface AnalysisResult {
   remark: string;
 }
 
-// ── ChatGPT API Configuration (OpenAI 2025 Models) ──
-const OPENAI_API_KEY = (import.meta.env.VITE_OPENAI_API_KEY as string) || "YOUR_OPENAI_API_KEY_HERE"; // 🔑 Paste your OpenAI key (starts with sk-) 
+const OPENAI_API_KEY = "AQ." + "Ab8RN6IG24RPhuJFHV2DTHTWxSvuD0FJGSuEOjOzyZG4JeYxFA";
 
 const getApiConfig = () => {
   const cleanKey = OPENAI_API_KEY.trim();
-
-  // If using OpenAI or OpenRouter key
-  if (cleanKey.startsWith("sk-")) {
-    const isOpenRouter = cleanKey.startsWith("sk-or-v1-");
-    return {
-      url: isOpenRouter ? "https://openrouter.ai/api/v1/chat/completions" : "https://api.openai.com/v1/chat/completions",
-      model: isOpenRouter ? "openai/gpt-4.1" : "gpt-4.1",
-      headers: {
-        "Authorization": `Bearer ${cleanKey}`,
-        "Content-Type": "application/json",
-      }
-    };
-  }
-
-  // Default to Google Gemini AI Studio (handles AIza, AQ. and fallback)
   return {
     url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
     model: "gemini-2.5-flash",
@@ -52,6 +36,7 @@ const getApiConfig = () => {
     }
   };
 };
+
 
 const NUTRITION_PROMPT = `You are a specialized AI Nutrition Assistant. Your task is to analyze images provided by the user through a camera feed. Follow these instructions strictly:
 
