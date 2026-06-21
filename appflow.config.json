@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "appId": "YOUR_APP_ID",
+      "appId": "c50b9832",
       "root": "react-vite-refactor-main",
       "androidPath": "react-vite-refactor-main/android"
     }
