@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getApiUrl } from "@/lib/apiUrl";
+import { localRegister } from "@/lib/localAuth";
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ const Register: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -19,24 +19,27 @@ const Register: React.FC = () => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const response = await fetch(getApiUrl("/api/auth/register"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
-      });
+    if (password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters.");
+      return;
+    }
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed.");
+    setLoading(true);
+
+    setTimeout(() => {
+      const { error, user } = localRegister(username.trim(), email.trim(), password);
+
+      if (error || !user) {
+        setErrorMsg(error || "Registration failed.");
+        setLoading(false);
+        return;
       }
 
-      // Save user details to localStorage as a Registered User
+      // Save user session to localStorage
       const userAuth = {
-        email: data.user.email,
-        username: data.user.username,
-        role: data.user.role,
+        email: user.email,
+        username: user.username,
+        role: user.role,
       };
       localStorage.setItem("userAuth", JSON.stringify(userAuth));
 
@@ -44,7 +47,7 @@ const Register: React.FC = () => {
       localStorage.setItem(
         "userProfile",
         JSON.stringify({
-          username: userAuth.username,
+          username: user.username,
           avatar: "avatar1",
         })
       );
@@ -66,14 +69,9 @@ const Register: React.FC = () => {
         );
       }
 
-      alert("Account registered successfully! Welcome to KINETIC! 🎉");
-      navigate("/dashboard");
-    } catch (err) {
-      const error = err as Error;
-      setErrorMsg(error.message || "Failed to connect to authentication server. Make sure MongoDB and backend are running.");
-    } finally {
       setLoading(false);
-    }
+      navigate("/dashboard");
+    }, 500);
   };
 
   const handleSocialRegister = (provider: string) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getApiUrl } from "@/lib/apiUrl";
+import { localGetAllUsers, localDeleteUser, localUpdateUser } from "@/lib/localAuth";
 
 interface UserRecord {
   id: string;
@@ -29,23 +29,15 @@ const AdminControl: React.FC = () => {
     return authSaved ? JSON.parse(authSaved).email || "" : "";
   };
 
-  const fetchUsers = async () => {
+  const fetchUsers = () => {
     setLoading(true);
     setErrorMsg("");
     try {
-      const response = await fetch(getApiUrl("/api/admin/users"), {
-        headers: {
-          "x-admin-email": getAdminEmail()
-        }
-      });
-      if (!response.ok) {
-        throw new Error("Failed to load users database from server.");
-      }
-      const data = await response.json();
+      const data = localGetAllUsers();
       setUsers(data);
     } catch (err) {
       const error = err as Error;
-      setErrorMsg(error.message || "Failed to load database. Make sure backend and MongoDB are running.");
+      setErrorMsg(error.message || "Failed to load local user database.");
     } finally {
       setLoading(false);
     }
@@ -68,65 +60,32 @@ const AdminControl: React.FC = () => {
     setEditPassword(user.password || "");
   };
 
-  const handleSaveUpdate = async (e: React.FormEvent) => {
+  const handleSaveUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUser) return;
 
     setSaving(true);
-    try {
-      const response = await fetch(getApiUrl("/api/admin/users/update"), {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "x-admin-email": getAdminEmail()
-        },
-        body: JSON.stringify({
-          id: selectedUser.id,
-          username: editUsername,
-          email: editEmail,
-          password: editPassword,
-        }),
-      });
+    const { error } = localUpdateUser(selectedUser.id, {
+      username: editUsername,
+      email: editEmail,
+      password: editPassword || undefined,
+    });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update user.");
-      }
-
-      alert("User database updated successfully! Sync complete.");
+    if (error) {
+      alert(error);
+    } else {
+      alert("User updated successfully!");
       setSelectedUser(null);
       fetchUsers();
-    } catch (err) {
-      const error = err as Error;
-      alert(error.message || "Failed to update profile.");
-    } finally {
-      setSaving(false);
     }
+    setSaving(false);
   };
 
-  const handleDeleteUser = async (id: string, username: string) => {
-    if (window.confirm(`Are you sure you want to permanently DELETE user "${username}"? This will erase them from MongoDB and users_db.json! 🚨`)) {
-      try {
-        const response = await fetch(getApiUrl("/api/admin/users/delete"), {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "x-admin-email": getAdminEmail()
-          },
-          body: JSON.stringify({ id }),
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message || "Deletion failed.");
-        }
-
-        alert("User record deleted from all databases!");
-        fetchUsers();
-      } catch (err) {
-        const error = err as Error;
-        alert(error.message || "Failed to delete user.");
-      }
+  const handleDeleteUser = (id: string, username: string) => {
+    if (window.confirm(`Are you sure you want to permanently DELETE user "${username}"? 🚨`)) {
+      localDeleteUser(id);
+      alert("User record deleted!");
+      fetchUsers();
     }
   };
 

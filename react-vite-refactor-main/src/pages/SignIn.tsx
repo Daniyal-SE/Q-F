@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getApiUrl } from "@/lib/apiUrl";
+import { localSignIn } from "@/lib/localAuth";
 
 const SignIn: React.FC = () => {
   const navigate = useNavigate();
@@ -9,7 +9,7 @@ const SignIn: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -19,34 +19,35 @@ const SignIn: React.FC = () => {
     }
 
     setLoading(true);
-    try {
-      const response = await fetch(getApiUrl("/api/auth/signin"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Invalid credentials.");
+    // Small delay for UX feedback
+    setTimeout(() => {
+      const { error, user } = localSignIn(email.trim(), password);
+
+      if (error || !user) {
+        setErrorMsg(error || "Invalid credentials.");
+        setLoading(false);
+        return;
       }
 
-      // Save user details to localStorage as a Registered User
+      // Save user session to localStorage
       const userAuth = {
-        email: data.user.email,
-        username: data.user.username,
-        role: data.user.role,
+        email: user.email,
+        username: user.username,
+        role: user.role,
       };
       localStorage.setItem("userAuth", JSON.stringify(userAuth));
 
-      // Also populate default profile if not exists
-      localStorage.setItem(
-        "userProfile",
-        JSON.stringify({
-          username: userAuth.username,
-          avatar: "avatar1",
-        })
-      );
+      // Populate default profile if not exists
+      if (!localStorage.getItem("userProfile")) {
+        localStorage.setItem(
+          "userProfile",
+          JSON.stringify({
+            username: user.username,
+            avatar: "avatar1",
+          })
+        );
+      }
 
       // Initial streak data if not started
       if (!localStorage.getItem("streakData")) {
@@ -65,14 +66,14 @@ const SignIn: React.FC = () => {
         );
       }
 
-      alert("Signed in successfully! 💪");
-      navigate("/dashboard");
-    } catch (err) {
-      const error = err as Error;
-      setErrorMsg(error.message || "Failed to connect to authentication server. Make sure MongoDB and backend are running.");
-    } finally {
       setLoading(false);
-    }
+
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    }, 500);
   };
 
   return (
