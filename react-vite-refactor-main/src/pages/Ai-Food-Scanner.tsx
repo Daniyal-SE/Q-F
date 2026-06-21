@@ -23,13 +23,13 @@ interface AnalysisResult {
   remark: string;
 }
 
-const OPENAI_API_KEY = "AQ." + "Ab8RN6IG24RPhuJFHV2DTHTWxSvuD0FJGSuEOjOzyZG4JeYxFA";
+const OPENAI_API_KEY = "sk-" + "l4uPVQ26fabEfjGJ14RyY3ErPBhP8bGodeX2XtH58FZwX1gq";
 
 const getApiConfig = () => {
   const cleanKey = OPENAI_API_KEY.trim();
   return {
-    url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-    model: "gemini-2.5-flash",
+    url: "https://api.openai.com/v1/chat/completions",
+    model: "gpt-4o",
     headers: {
       "Authorization": `Bearer ${cleanKey}`,
       "Content-Type": "application/json",
